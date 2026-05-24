@@ -61,19 +61,21 @@ nyomnyom_mobile/
 │   ├── api.js               # apiFetch wrapper (update BASE_URL for dev)
 │   ├── navigation/index.jsx # Auth stack + bottom tab navigator
 │   ├── context/
-│   │   ├── AuthContext.jsx  # Done (needs cookie/token TODO resolved)
-│   │   ├── AppContext.jsx   # TODO — adapt from nyomnyom_web
-│   │   ├── JobContext.jsx   # TODO
+│   │   ├── AuthContext.jsx      # Done (needs cookie/token TODO resolved)
+│   │   ├── AppContext.jsx       # TODO — adapt from nyomnyom_web
+│   │   ├── JobContext.jsx       # TODO
 │   │   ├── FitnessContext.jsx   # TODO
 │   │   ├── PortfolioContext.jsx # TODO
 │   │   ├── ClimbingContext.jsx  # TODO
-│   │   └── ProjectsContext.jsx  # TODO
+│   │   ├── ProjectsContext.jsx  # TODO
+│   │   └── HydroContext.jsx     # TODO
 │   └── screens/
-│       ├── SignIn.jsx           # Stub — needs design + register flow
-│       ├── spending/SpendingScreen.jsx  # Stub
-│       ├── jobs/JobsScreen.jsx          # Stub
-│       ├── fitness/FitnessScreen.jsx    # Stub
-│       ├── portfolio/PortfolioScreen.jsx # Stub
-│       ├── climbing/ClimbingScreen.jsx  # Stub
-│       └── projects/ProjectsScreen.jsx  # Stub
+│       ├── SignIn.jsx                         # Stub — needs design + register flow
+│       ├── spending/SpendingScreen.jsx        # Stub
+│       ├── jobs/JobsScreen.jsx                # Stub
+│       ├── fitness/FitnessScreen.jsx          # Stub
+│       ├── portfolio/PortfolioScreen.jsx      # Stub
+│       ├── climbing/ClimbingScreen.jsx        # Stub
+│       ├── projects/ProjectsScreen.jsx        # Stub
+│       └── hydro/HydroScreen.jsx              # Stub
 ```
