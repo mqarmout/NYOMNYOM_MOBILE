@@ -1,0 +1,247 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { seed } from './seed';
+import type { AppData, SectionId, Toast, TaskTag } from '../data/types';
+import type { PaletteName } from '../theme/palettes';
+import type { FontName } from '../theme/type';
+import {
+  apiLogin, apiMe, apiLogout, apiLoadAll,
+  apiAddExpense, apiGetCategoryId,
+  apiAddWorkout, apiAddClimb,
+  apiAddJob, apiAddKanbanTask, apiLogDose,
+} from '../api';
+
+export const PAGER: SectionId[] = [
+  'home', 'spending', 'fitness', 'climbing', 'hydro', 'jobs', 'portfolio', 'projects'
+];
+
+interface AppState {
+  auth: { name: string } | null;
+  hydrated: boolean;
+  syncing: boolean;
+  section: SectionId;
+  palette: PaletteName;
+  font: FontName;
+  homeMode: 'dash' | 'brief' | 'grid';
+  toasts: Toast[];
+  data: AppData;
+
+  login(name: string, password?: string): Promise<void>;
+  logout(): Promise<void>;
+  syncFromServer(): Promise<void>;
+  go(s: SectionId): void;
+  setPalette(p: PaletteName): void;
+  setFont(f: FontName): void;
+  setHomeMode(m: 'dash' | 'brief' | 'grid'): void;
+  pushToast(text: string, kind?: Toast['kind']): void;
+  clearToast(id: number): void;
+
+  addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
+  addWorkout(x: { name: string; min?: string | number }): void;
+  logSend(x: { route: string; grade: string; style: string; gym?: string }): void;
+  logDose(x: { tank: string; what: string; amt?: string }): void;
+  addApplication(x: { co: string; role: string; comp: string }): void;
+  addTask(x: { title: string; tag: string }): void;
+  reset(): void;
+}
+
+function nowIso() { return new Date().toISOString(); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function nanoid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+export const useStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      auth: null,
+      hydrated: false,
+      syncing: false,
+      section: 'home',
+      palette: 'green',
+      font: 'jetbrains',
+      homeMode: 'dash',
+      toasts: [],
+      data: seed(),
+
+      async login(name, password) {
+        const n = (name || '').trim();
+        if (!n) return;
+
+        // Try server auth first; fall back to local-only if no password given
+        if (password) {
+          const user = await apiLogin(n, password).catch(() => null);
+          if (user) {
+            set({ auth: { name: user.username }, section: 'home' });
+            get().pushToast('system booted · welcome ' + user.username, 'ok');
+            await get().syncFromServer().catch(() => {});
+            return;
+          }
+          get().pushToast('invalid credentials', 'err');
+          return;
+        }
+
+        // Local-only (dev / seed mode)
+        set({ auth: { name: n }, section: 'home' });
+        get().pushToast('system booted · welcome ' + n, 'ok');
+      },
+
+      async logout() {
+        await apiLogout().catch(() => {});
+        set({ auth: null, section: 'home', data: seed() });
+      },
+
+      async syncFromServer() {
+        const { auth } = get();
+        if (!auth) return;
+        set({ syncing: true });
+        try {
+          const partial = await apiLoadAll({ username: auth.name });
+          set(s => ({
+            syncing: false,
+            data: { ...s.data, ...partial },
+          }));
+        } catch {
+          set({ syncing: false });
+          get().pushToast('sync failed — using cached data', 'warn');
+        }
+      },
+
+      go(s) { if (PAGER.includes(s)) set({ section: s }); },
+      setPalette(p) { set({ palette: p }); },
+      setFont(f) { set({ font: f }); },
+      setHomeMode(m) { set({ homeMode: m }); },
+
+      pushToast(text, kind = 'ok') {
+        const id = Date.now() + Math.random();
+        set(s => ({ toasts: [...s.toasts, { id, text, kind }] }));
+        setTimeout(() => get().clearToast(id), 2800);
+      },
+      clearToast(id) {
+        set(s => ({ toasts: s.toasts.filter(t => t.id !== id) }));
+      },
+
+      addExpense({ merchant, amt, cat }) {
+        const a = Math.abs(parseFloat(String(amt)) || 0);
+        // Optimistic update
+        set(s => {
+          const d = structuredClone(s.data);
+          const c = d.spending.cats.find(x => x.name === cat);
+          const over = c ? c.spent + a > c.budget : false;
+          d.spending.txns.unshift({ id: nanoid(), createdAt: nowIso(), merchant: merchant || 'untitled', cat: cat || 'misc', amt: a, over });
+          if (c) c.spent = +(c.spent + a).toFixed(2);
+          return { data: d };
+        });
+        get().pushToast('logged $' + a.toFixed(2) + ' · ' + (cat || 'misc'), 'ok');
+        // Background sync to server
+        apiGetCategoryId(cat).then((catId: number | null) => {
+          if (!catId) return;
+          return apiAddExpense({ description: merchant, amount: a, category_id: catId, date: today() });
+        }).catch(() => {});
+      },
+
+      addWorkout({ name, min }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.fitness.workouts.unshift({ id: nanoid(), createdAt: nowIso(), name: name || 'Session', min: parseInt(String(min ?? 45)) || 45, sets: 0 });
+          return { data: d };
+        });
+        get().pushToast('workout logged · ' + (name || 'session'), 'ok');
+        apiAddWorkout({ name: name || 'Session', duration: parseInt(String(min ?? 45)) || 45, date: today() }).catch(() => {});
+      },
+
+      logSend({ route, grade, style, gym }) {
+        const g = (grade || 'V2').toUpperCase();
+        set(s => {
+          const d = structuredClone(s.data);
+          d.climbing.sends.unshift({ id: nanoid(), createdAt: nowIso(), gym: gym || '', route: route || 'unnamed', grade: g, style: (style as 'flash' | 'onsight' | 'redpoint' | 'project') || 'redpoint' });
+          d.climbing.pyramid[g] = (d.climbing.pyramid[g] ?? 0) + 1;
+          if (style === 'flash' || style === 'onsight') d.climbing.flashes += 1;
+          return { data: d };
+        });
+        get().pushToast('send logged · ' + g + ' ' + (route || ''), 'ok');
+        apiAddClimb({
+          climb_type: 'boulder',
+          name: route || 'unnamed',
+          location: gym || '',
+          my_grade: g,
+          sent: 1,
+          flash: style === 'flash' ? 1 : 0,
+          attempts: 1,
+          date: today(),
+        }).catch(() => {});
+      },
+
+      logDose({ tank, what, amt }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.hydro.doses.unshift({ id: nanoid(), createdAt: nowIso(), tank: tank || 'T1', what: what || 'flora-A', amt: amt || '5ml', kind: 'accent' });
+          return { data: d };
+        });
+        get().pushToast('dose logged · ' + (tank || 'T1') + ' ' + (what || ''), 'ok');
+        const ml = parseFloat((amt ?? '5ml').replace(/[^0-9.]/g, '')) || 5;
+        apiLogDose({ dose_type: what || 'other', amount_ml: ml, date: today() }).catch(() => {});
+      },
+
+      addApplication({ co, role, comp }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.jobs.board.applied.unshift({ id: nanoid(), createdAt: nowIso(), co: co || 'company', role: role || 'role', when: today(), comp: comp || '—', loc: 'remote' });
+          return { data: d };
+        });
+        get().pushToast('application added · ' + (co || ''), 'ok');
+        apiAddJob({ company: co, role, salary: comp, status: 'applied', date_applied: today() }).catch(() => {});
+      },
+
+      addTask({ title, tag }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.projects.board.todo.unshift({ id: nanoid(), createdAt: nowIso(), title: title || 'new task', tag: (tag as TaskTag) || 'feat', est: 'M', sec: 'home' });
+          return { data: d };
+        });
+        get().pushToast('task added to todo', 'ok');
+        apiAddKanbanTask({ title: title || 'new task', status: 'backlog', priority: 'medium' }).catch(() => {});
+      },
+
+      reset() {
+        set({ data: seed() });
+        get().pushToast('data reset to defaults', 'ok');
+      },
+    }),
+    {
+      name: 'nyomnyom_phone_v2',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({
+        auth: s.auth,
+        section: s.section,
+        palette: s.palette,
+        font: s.font,
+        homeMode: s.homeMode,
+        data: s.data,
+      }),
+      onRehydrateStorage: () => (state) => {
+        useStore.setState({ hydrated: true });
+        // On rehydrate, check if server session is still valid and sync
+        if (state?.auth) {
+          apiMe()
+            .then((user: { username: string } | null) => {
+              if (user) return useStore.getState().syncFromServer();
+              else useStore.setState({ auth: null, data: seed() });
+            })
+            .catch(() => {});
+        }
+      },
+    }
+  )
+);
+
+export function spendTotals(spending: AppData['spending']) {
+  const monthTotal = Math.round(spending.cats.reduce((s, c) => s + c.spent, 0));
+  return { monthTotal, budget: spending.budget, pct: Math.round((monthTotal / spending.budget) * 100), left: spending.budget - monthTotal };
+}
+
+export function climbStats(climbing: AppData['climbing']) {
+  const sent = Object.values(climbing.pyramid).reduce((s, n) => s + n, 0);
+  const grades = Object.keys(climbing.pyramid).filter(g => (climbing.pyramid[g] ?? 0) > 0).sort();
+  const max = grades.length ? grades[grades.length - 1] ?? 'V0' : 'V0';
+  return { sent, max, flashes: climbing.flashes, projects: climbing.projects };
+}

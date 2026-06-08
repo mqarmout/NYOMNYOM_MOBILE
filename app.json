@@ -20,6 +20,19 @@
         "backgroundColor": "#0a0a0a"
       },
       "package": "com.nyomnyom.app"
-    }
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/JetBrainsMono-Regular.ttf",
+            "./assets/fonts/IBMPlexMono-Regular.ttf",
+            "./assets/fonts/FiraCode-Regular.ttf"
+          ]
+        }
+      ],
+      "expo-secure-store"
+    ]
   }
 }
