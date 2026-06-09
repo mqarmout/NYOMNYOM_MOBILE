@@ -12,10 +12,11 @@ interface SheetProps {
   open: boolean;
   onClose: () => void;
   title: string;
+  subtitle?: string;
   children: React.ReactNode;
 }
 
-export function Sheet({ open, onClose, title, children }: SheetProps) {
+export function Sheet({ open, onClose, title, subtitle = '> new entry_', children }: SheetProps) {
   const theme = useTheme();
   return (
     <Modal
@@ -36,7 +37,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
                 {'// ' + title}
               </Text>
               <Text style={[styles.headerHero, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>
-                {'> new entry_'}
+                {subtitle}
               </Text>
             </View>
             <Pressable

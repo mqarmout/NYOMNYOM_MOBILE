@@ -137,6 +137,13 @@ export async function apiAddClimb(x: {
   return res.ok && res.data.id ? { id: res.data.id } : null;
 }
 
+export async function apiUpdateClimb(id: string, x: {
+  climb_type: string; name: string; location: string;
+  my_grade: string; sent: number; flash: number; attempts: number; date: string;
+}): Promise<void> {
+  await apiFetch(`/api/climbing/${id}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
 export async function apiAddClimbPhoto(
   climbId: number,
   photo: { uri: string; type: string; name: string },

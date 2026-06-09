@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
 import { useStore, climbStats } from '../state/store';
@@ -9,6 +9,7 @@ import { Box, Comment, Mono } from '../components/crt/Box';
 import { SubTabs } from '../components/crt/SubTabs';
 import { GradePyramid } from '../components/crt/charts/GradePyramid';
 import { Fab } from '../components/crt/Fab';
+import { EditClimbSheet } from './sheets/EditClimbSheet';
 import { fmtDay } from '../utils/format';
 import { BASE_URL } from '../api/config';
 import type { Send } from '../data/types';
@@ -31,6 +32,9 @@ export function ClimbingScreen({ onLogSend }: Props) {
   const [tab, setTab] = useState(0);
   const stats = climbStats(climbing);
 
+  const [editClimb, setEditClimb] = useState<Send | null>(null);
+  const [lightboxUri, setLightboxUri] = useState<string | null>(null);
+
   return (
     <CRTScreen title="CLIMBING">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
@@ -41,12 +45,18 @@ export function ClimbingScreen({ onLogSend }: Props) {
         {tab === 0 && (
           <Box title={`SENDS (${climbing.sends.length})`}>
             {climbing.sends.map(s => (
-              <View key={s.id} style={[styles.sendRow, { borderBottomColor: theme.border }]}>
+              <Pressable
+                key={s.id}
+                onPress={() => setEditClimb(s)}
+                style={[styles.sendRow, { borderBottomColor: theme.border }]}
+              >
                 {s.photo_path ? (
-                  <Image
-                    source={{ uri: `${BASE_URL}/api/climbing/photos/${s.photo_path}` }}
-                    style={[styles.photo, { borderColor: STYLE_COLORS[s.style] ?? theme.border }]}
-                  />
+                  <Pressable onPress={(e) => { e.stopPropagation?.(); setLightboxUri(`${BASE_URL}/api/climbing/photos/${s.photo_path}`); }}>
+                    <Image
+                      source={{ uri: `${BASE_URL}/api/climbing/photos/${s.photo_path}` }}
+                      style={[styles.photo, { borderColor: STYLE_COLORS[s.style] ?? theme.border }]}
+                    />
+                  </Pressable>
                 ) : (
                   <View style={[styles.grade, { borderColor: STYLE_COLORS[s.style] ?? theme.border }]}>
                     <Text style={[styles.gradeText, { color: STYLE_COLORS[s.style] ?? theme.accent, fontFamily: FONTS.jetbrains }]}>{s.grade}</Text>
@@ -65,12 +75,10 @@ export function ClimbingScreen({ onLogSend }: Props) {
                       {`${s.style.toUpperCase()} · ${s.attempts}${s.attempts === 1 ? ' try' : ' tries'}`}
                     </Text>
                   </View>
-                  {s.gym ? (
-                    <Mono style={{ color: theme.muted, fontSize: 10 }}>{s.gym}</Mono>
-                  ) : null}
+                  {s.gym ? <Mono style={{ color: theme.muted, fontSize: 10 }}>{s.gym}</Mono> : null}
                 </View>
                 <Mono style={{ color: theme.muted, fontSize: 10 }}>{fmtDay(s.createdAt)}</Mono>
-              </View>
+              </Pressable>
             ))}
           </Box>
         )}
@@ -110,7 +118,22 @@ export function ClimbingScreen({ onLogSend }: Props) {
           </Box>
         )}
       </PullToRefresh>
+
       <Fab onPress={onLogSend} />
+
+      <EditClimbSheet
+        open={editClimb !== null}
+        onClose={() => setEditClimb(null)}
+        climb={editClimb}
+      />
+
+      <Modal visible={lightboxUri !== null} transparent animationType="fade" onRequestClose={() => setLightboxUri(null)}>
+        <Pressable style={styles.lightboxBg} onPress={() => setLightboxUri(null)}>
+          {lightboxUri && (
+            <Image source={{ uri: lightboxUri }} style={styles.lightboxImg} resizeMode="contain" />
+          )}
+        </Pressable>
+      </Modal>
     </CRTScreen>
   );
 }
@@ -130,4 +153,6 @@ const styles = StyleSheet.create({
   statRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1 },
   statVal: { fontSize: 16 },
   styleTag: { fontSize: 10, letterSpacing: 0.8 },
+  lightboxBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
+  lightboxImg: { width: '100%', height: '80%' },
 });

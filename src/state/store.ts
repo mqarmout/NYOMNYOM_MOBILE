@@ -8,7 +8,7 @@ import type { FontName } from '../theme/type';
 import {
   apiLogin, apiMe, apiLogout, apiLoadAll,
   apiAddExpense, apiGetCategoryId,
-  apiAddWorkout, apiAddClimb, apiAddClimbPhoto,
+  apiAddWorkout, apiAddClimb, apiAddClimbPhoto, apiUpdateClimb,
   apiAddJob, apiAddKanbanTask, apiLogDose,
 } from '../api';
 
@@ -40,6 +40,7 @@ interface AppState {
   addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
   addWorkout(x: { name: string; min?: string | number }): void;
   logSend(x: { route: string; grade: string; style: string; gym?: string; climb_type?: string; attempts?: number; photo?: { uri: string; type: string; name: string } }): void;
+  updateClimb(x: { id: string; route: string; grade: string; style: string; gym?: string; climb_type?: string; attempts?: number; photo?: { uri: string; type: string; name: string } }): void;
   logDose(x: { tank: string; what: string; amt?: string }): void;
   addApplication(x: { co: string; role: string; comp: string }): void;
   addTask(x: { title: string; tag: string }): void;
@@ -176,6 +177,26 @@ export const useStore = create<AppState>()(
           }
         }).then(() => {
           if (photo) get().syncFromServer();
+        }).catch(() => {});
+      },
+
+      updateClimb({ id, route, grade, style, gym, climb_type, attempts, photo }) {
+        const g = (grade || 'V2').toUpperCase();
+        const ct = (climb_type || 'boulder') as 'boulder' | 'sport';
+        const att = attempts ?? 1;
+        set(s => {
+          const d = structuredClone(s.data);
+          const idx = d.climbing.sends.findIndex(send => send.id === id);
+          if (idx >= 0) {
+            d.climbing.sends[idx] = { ...d.climbing.sends[idx]!, route: route || 'unnamed', grade: g, style: (style as 'flash' | 'onsight' | 'redpoint' | 'project') || 'redpoint', gym: gym || '', climb_type: ct, attempts: att };
+          }
+          return { data: d };
+        });
+        get().pushToast('send updated', 'ok');
+        apiUpdateClimb(id, { climb_type: ct, name: route || 'unnamed', location: gym || '', my_grade: g, sent: 1, flash: style === 'flash' ? 1 : 0, attempts: att, date: today() }).then(() => {
+          if (photo) return apiAddClimbPhoto(parseInt(id), photo);
+        }).then(() => {
+          get().syncFromServer();
         }).catch(() => {});
       },
 

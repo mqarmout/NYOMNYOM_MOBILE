@@ -7,7 +7,6 @@ import { PullToRefresh } from '../components/crt/PullToRefresh';
 import { CRTScreen } from '../components/crt/CRTScreen';
 import { Box, Comment, Mono } from '../components/crt/Box';
 import { SubTabs } from '../components/crt/SubTabs';
-import { AreaSpark } from '../components/crt/charts/AreaSpark';
 import { Bars } from '../components/crt/charts/Bars';
 import { Fab } from '../components/crt/Fab';
 import { fmtDay, fmtDuration, fmtPace } from '../utils/format';
@@ -75,7 +74,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
         {tab === 1 && (
           <>
             <Box title="RUN VOLUME (KM/WEEK)">
-              <AreaSpark values={fitness.runWeekKm} height={80} labels={fitness.runWeekLabels} />
+              <Bars values={fitness.runWeekKm} height={80} labels={fitness.runWeekLabels} />
             </Box>
             <Box title={`RUNS (${fitness.runs.length})`}>
               {fitness.runs.slice(0, 30).map(run => (
@@ -104,7 +103,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                   <Text style={[styles.bigNum, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>{`${fitness.weight}kg`}</Text>
                 </View>
               </View>
-              <AreaSpark values={fitness.weightHistory} height={80} labels={fitness.weightDates} />
+              <Bars values={fitness.weightHistory} height={80} labels={fitness.weightDates} />
             </Box>
           </>
         )}

@@ -8,7 +8,7 @@ import { CRTScreen } from '../components/crt/CRTScreen';
 import { Box, Comment, Mono } from '../components/crt/Box';
 import { SubTabs } from '../components/crt/SubTabs';
 import { BlockBar } from '../components/crt/BlockBar';
-import { AreaSpark } from '../components/crt/charts/AreaSpark';
+import { Bars } from '../components/crt/charts/Bars';
 import { Fab } from '../components/crt/Fab';
 import { fmtMoney, fmtTxnDate } from '../utils/format';
 
@@ -51,8 +51,8 @@ export function SpendingScreen({ onAddExpense }: Props) {
               </View>
               <BlockBar pct={totals.pct} />
             </Box>
-            <Box title="SPEND TREND">
-              <AreaSpark values={data.spending.cats.map(c => c.spent)} height={80} />
+            <Box title="SPEND BY CATEGORY">
+              <Bars values={data.spending.cats.map(c => c.spent)} height={80} labels={data.spending.cats.map(c => c.name)} />
             </Box>
             <Box title="TOP CATEGORIES">
               {[...data.spending.cats].sort((a, b) => b.spent - a.spent).slice(0, 5).map(cat => (

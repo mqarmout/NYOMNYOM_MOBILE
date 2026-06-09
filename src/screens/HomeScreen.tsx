@@ -6,7 +6,6 @@ import { useStore, spendTotals, climbStats } from '../state/store';
 import { CRTScreen } from '../components/crt/CRTScreen';
 import { Box, Mono, Comment } from '../components/crt/Box';
 import { BlockBar } from '../components/crt/BlockBar';
-import { AreaSpark } from '../components/crt/charts/AreaSpark';
 import { Bars } from '../components/crt/charts/Bars';
 import { fmtClock, greetPart, fmtMoney } from '../utils/format';
 
@@ -82,7 +81,7 @@ export function HomeScreen() {
                 </View>
               </View>
               <BlockBar pct={totals.pct} />
-              <AreaSpark values={data.spending.cats.map(c => c.spent)} height={56} />
+              <Bars values={data.spending.cats.map(c => c.spent)} height={56} labels={data.spending.cats.map(c => c.name)} />
             </Box>
 
             <Box title="FITNESS">
