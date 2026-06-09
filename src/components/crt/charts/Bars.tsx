@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
+import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { FONTS } from '../../../theme/type';
 
@@ -25,11 +25,13 @@ export function Bars({ values, height = 48, labels, showAllLabels = false }: Pro
   }, [values, height]);
 
   const hasLabels = labels && labels.length > 0;
+  const LABEL_SPACE = showAllLabels && hasLabels ? 58 : 0;
+  const svgH = height + LABEL_SPACE;
 
   return (
     <View>
-      <View style={{ height }}>
-        <Svg viewBox={`0 0 360 ${height}`} width="100%" height={height} preserveAspectRatio="none">
+      <View style={{ height: svgH }}>
+        <Svg viewBox={`0 0 360 ${svgH}`} width="100%" height={svgH} preserveAspectRatio="none">
           {bars.map((b, i) => (
             <Rect
               key={i}
@@ -41,22 +43,28 @@ export function Bars({ values, height = 48, labels, showAllLabels = false }: Pro
               opacity={b.isLast ? 1 : 0.55}
             />
           ))}
-        </Svg>
-      </View>
-      {hasLabels && showAllLabels && (
-        <View style={styles.allLabelRow}>
-          {labels!.map((l, i) => (
-            <View key={i} style={styles.allLabelCell}>
-              <Text
-                style={[styles.allLabel, { color: theme.muted, fontFamily: FONTS.jetbrains }]}
-                numberOfLines={1}
+          {hasLabels && showAllLabels && labels!.map((l, i) => {
+            const bar = bars[i];
+            if (!bar) return null;
+            const cx = bar.x + bar.w / 2;
+            const ly = height + 14;
+            return (
+              <SvgText
+                key={`lbl-${i}`}
+                x={cx}
+                y={ly}
+                fontSize="9"
+                fill={theme.muted}
+                fontFamily={FONTS.jetbrains}
+                transform={`rotate(40, ${cx}, ${ly})`}
+                textAnchor="start"
               >
                 {l}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
+              </SvgText>
+            );
+          })}
+        </Svg>
+      </View>
       {hasLabels && !showAllLabels && (
         <View style={styles.labelRow}>
           {labels!.map((l, i) => {
@@ -80,7 +88,4 @@ export function Bars({ values, height = 48, labels, showAllLabels = false }: Pro
 const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   label: { fontSize: 9, letterSpacing: 0.4 },
-  allLabelRow: { flexDirection: 'row', marginTop: 5 },
-  allLabelCell: { flex: 1, alignItems: 'center' },
-  allLabel: { fontSize: 8, letterSpacing: 0.2, textAlign: 'center' },
 });

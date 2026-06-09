@@ -8,11 +8,12 @@ import type { FontName } from '../theme/type';
 import {
   apiLogin, apiMe, apiLogout, apiLoadAll,
   apiAddExpense, apiGetCategoryId, apiUpdateExpense, apiDeleteExpense,
+  apiUpdateIncome, apiDeleteIncome,
   apiAddWorkout, apiUpdateWorkout, apiDeleteWorkout,
   apiAddWorkoutSet, apiUpdateWorkoutSet, apiDeleteWorkoutSet,
   apiAddClimb, apiAddClimbPhoto, apiUpdateClimb,
   apiAddJob, apiAddKanbanTask, apiLogDose, apiStravaImport,
-  apiAddPrint,
+  apiAddBodyWeight, apiAddPrint,
 } from '../api';
 
 export const PAGER: SectionId[] = [
@@ -43,6 +44,8 @@ interface AppState {
   addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
   updateExpense(x: { id: string; merchant: string; amt: number; cat: string; catId: number; date: string }): void;
   deleteExpense(id: string): void;
+  updateIncome(x: { id: string; description: string; source: string; amt: number; date: string }): void;
+  deleteIncome(id: string): void;
   addWorkout(x: { name: string; min?: string | number }): void;
   updateWorkout(x: { id: string; name: string; min: number }): void;
   deleteWorkout(id: string): void;
@@ -54,6 +57,7 @@ interface AppState {
   logDose(x: { tank: string; what: string; amt?: string }): void;
   addApplication(x: { co: string; role: string; comp: string }): void;
   addTask(x: { title: string; tag: string }): void;
+  addBodyWeight(x: { weight: number; date: string }): Promise<void>;
   addPrint(x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string }): Promise<void>;
   reset(): void;
 }
@@ -181,6 +185,28 @@ export const useStore = create<AppState>()(
         });
         get().pushToast('expense deleted', 'ok');
         apiDeleteExpense(id).catch(() => {});
+      },
+
+      updateIncome({ id, description, source, amt, date }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          const idx = d.spending.income.findIndex(i => i.id === id);
+          if (idx >= 0) d.spending.income[idx] = { ...d.spending.income[idx]!, description, source, amt, date };
+          return { data: d };
+        });
+        get().pushToast('income updated', 'ok');
+        apiUpdateIncome(id, { amount: amt, description, source, date }).catch(() => {});
+        setTimeout(() => get().syncFromServer(), 500);
+      },
+
+      deleteIncome(id) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.spending.income = d.spending.income.filter(i => i.id !== id);
+          return { data: d };
+        });
+        get().pushToast('income deleted', 'ok');
+        apiDeleteIncome(id).catch(() => {});
       },
 
       updateWorkout({ id, name, min }) {
@@ -323,6 +349,12 @@ export const useStore = create<AppState>()(
         apiAddKanbanTask({ title: title || 'new task', status: 'backlog', priority: 'medium' }).catch(() => {});
       },
 
+      async addBodyWeight({ weight, date }) {
+        await apiAddBodyWeight({ weight, date }).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast(`${weight}kg logged`, 'ok');
+      },
+
       async addPrint(x) {
         await apiAddPrint(x).catch(() => {});
         await get().syncFromServer();
@@ -339,7 +371,6 @@ export const useStore = create<AppState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         auth: s.auth,
-        section: s.section,
         palette: s.palette,
         font: s.font,
         homeMode: s.homeMode,

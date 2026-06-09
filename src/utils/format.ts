@@ -1,6 +1,12 @@
 const DOW = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
+// "YYYY-MM-DD" parses as UTC midnight → wrong day in UTC-X zones.
+// Appending T00:00:00 (no Z) forces local-time parsing.
+function parseDate(iso: string): Date {
+  return iso.length === 10 ? new Date(iso + 'T00:00:00') : new Date(iso);
+}
+
 export function fmtClock(d: Date) {
   return `${DOW[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}·${MON[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
@@ -15,12 +21,12 @@ export function fmtMoney(n: number) {
 }
 
 export function fmtTime(iso: string) {
-  const d = new Date(iso);
+  const d = parseDate(iso);
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
 export function fmtDay(iso: string) {
-  const d = new Date(iso);
+  const d = parseDate(iso);
   const now = new Date();
   if (d.toDateString() === now.toDateString()) return 'today';
   const diff = Math.floor((now.getTime() - d.getTime()) / 86400000);
@@ -29,7 +35,7 @@ export function fmtDay(iso: string) {
 }
 
 export function fmtTxnDate(iso: string) {
-  const d = new Date(iso);
+  const d = parseDate(iso);
   const now = new Date();
   if (d.toDateString() === now.toDateString()) return fmtTime(iso);
   return fmtDay(iso);

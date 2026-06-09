@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
 import { useStore } from '../state/store';
@@ -28,10 +28,26 @@ export function FitnessScreen({ onLogWorkout }: Props) {
   const section = useStore(s => s.section);
   const [tab, setTab] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const addBodyWeight = useStore(s => s.addBodyWeight);
   const [editWorkout, setEditWorkout] = useState<Workout | null>(null);
   const [editSet, setEditSet] = useState<{ workoutId: string; set: WorkoutSet } | null>(null);
+  const [weightModal, setWeightModal] = useState(false);
+  const [weightInput, setWeightInput] = useState('');
+  const [weightDate, setWeightDate] = useState(new Date().toISOString().slice(0, 10));
+  const [savingWeight, setSavingWeight] = useState(false);
 
   useEffect(() => { if (section !== 'fitness') { setTab(0); setExpandedId(null); } }, [section]);
+
+  const handleSaveWeight = async () => {
+    const w = parseFloat(weightInput);
+    if (!w || w <= 0) return;
+    setSavingWeight(true);
+    await addBodyWeight({ weight: w, date: weightDate });
+    setSavingWeight(false);
+    setWeightInput('');
+    setWeightDate(new Date().toISOString().slice(0, 10));
+    setWeightModal(false);
+  };
 
   const bodyStats = (() => {
     const h = fitness.weightHistory;
@@ -182,7 +198,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                   <AreaSpark values={fitness.weightHistory} height={80} labels={fitness.weightDates} allDots noFill />
                 </>
               ) : (
-                <Mono style={{ color: theme.muted }}>{'// no weight data — log a metric from the web'}</Mono>
+                <Mono style={{ color: theme.muted }}>{'// no weight data yet — tap [+] to log'}</Mono>
               )}
             </Box>
 
@@ -202,7 +218,42 @@ export function FitnessScreen({ onLogWorkout }: Props) {
         )}
       </PullToRefresh>
 
-      <Fab onPress={onLogWorkout} />
+      <Fab onPress={tab === 2 ? () => setWeightModal(true) : onLogWorkout} />
+
+      {/* Weight entry modal */}
+      <Modal visible={weightModal} transparent animationType="slide" onRequestClose={() => setWeightModal(false)}>
+        <Pressable style={wStyles.scrim} onPress={() => setWeightModal(false)} />
+        <View style={[wStyles.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
+          <Text style={[wStyles.title, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// LOG WEIGHT</Text>
+          <Text style={[wStyles.label, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>WEIGHT (kg)</Text>
+          <TextInput
+            style={[wStyles.input, { color: theme.cream, borderColor: theme.border, fontFamily: FONTS.jetbrains }]}
+            value={weightInput}
+            onChangeText={setWeightInput}
+            keyboardType="numeric"
+            placeholder="e.g. 82.5"
+            placeholderTextColor={theme.muted}
+            autoFocus
+          />
+          <Text style={[wStyles.label, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>DATE</Text>
+          <TextInput
+            style={[wStyles.input, { color: theme.cream, borderColor: theme.border, fontFamily: FONTS.jetbrains }]}
+            value={weightDate}
+            onChangeText={setWeightDate}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={theme.muted}
+          />
+          <Pressable
+            onPress={handleSaveWeight}
+            disabled={savingWeight || !weightInput}
+            style={[wStyles.btn, { backgroundColor: weightInput ? theme.accent : theme.surface, borderColor: theme.accent }]}
+          >
+            <Text style={[wStyles.btnText, { color: weightInput ? theme.bg : theme.muted, fontFamily: FONTS.jetbrains }]}>
+              {savingWeight ? '...' : '[+] SAVE'}
+            </Text>
+          </Pressable>
+        </View>
+      </Modal>
 
       <EditWorkoutSheet
         open={editWorkout !== null}
@@ -239,4 +290,14 @@ const styles = StyleSheet.create({
   setExercise: { fontSize: 12 },
   metricRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1 },
   metricVal: { fontSize: 14 },
+});
+
+const wStyles = StyleSheet.create({
+  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopWidth: 1, padding: 24, paddingBottom: 48 },
+  title: { fontSize: 10, letterSpacing: 1.4, marginBottom: 20 },
+  label: { fontSize: 9, letterSpacing: 1.2, marginBottom: 6, marginTop: 14 },
+  input: { borderWidth: 1, padding: 12, fontSize: 16 },
+  btn: { marginTop: 24, padding: 14, borderWidth: 1, alignItems: 'center' },
+  btnText: { fontSize: 12, letterSpacing: 1.2, fontWeight: '700' },
 });

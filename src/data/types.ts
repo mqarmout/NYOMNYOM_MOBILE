@@ -15,7 +15,11 @@ export interface Expense {
   id: string; createdAt: string;
   merchant: string; cat: string; catId: number; amt: number; over: boolean; date: string;
 }
-export interface Spending { budget: number; cats: Category[]; catIds: Record<string, number>; txns: Expense[]; }
+export interface IncomeEntry {
+  id: string; createdAt: string;
+  description: string; source: string; amt: number; date: string;
+}
+export interface Spending { budget: number; cats: Category[]; catIds: Record<string, number>; txns: Expense[]; income: IncomeEntry[]; }
 
 export interface WorkoutSet {
   id: string; exercise: string;

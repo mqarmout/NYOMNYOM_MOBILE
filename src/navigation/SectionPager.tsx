@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useStore, PAGER } from '../state/store';
 
@@ -14,12 +14,10 @@ export function SectionPager({ children }: Props) {
   const idx = PAGER.indexOf(section);
 
   // Sync scroll position when section changes via tab bar / terminal / store
-  const prevIdx = useRef(idx);
-  if (prevIdx.current !== idx) {
-    prevIdx.current = idx;
+  useEffect(() => {
     programmatic.current = true;
     ref.current?.scrollTo({ x: idx * width, animated: true });
-  }
+  }, [idx, width]);
 
   const onMomentumScrollEnd = useCallback((e: { nativeEvent: { contentOffset: { x: number } } }) => {
     if (programmatic.current) { programmatic.current = false; return; }

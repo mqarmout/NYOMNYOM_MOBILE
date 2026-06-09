@@ -5,7 +5,6 @@ import { FONTS } from '../theme/type';
 import { useStore, spendTotals, climbStats } from '../state/store';
 import { CRTScreen } from '../components/crt/CRTScreen';
 import { Box, Mono, Comment } from '../components/crt/Box';
-import { BlockBar } from '../components/crt/BlockBar';
 import { Bars } from '../components/crt/charts/Bars';
 import { fmtClock, greetPart, fmtMoney } from '../utils/format';
 
@@ -24,6 +23,9 @@ export function HomeScreen() {
 
   const totals = spendTotals(data.spending);
   const stats = climbStats(data.climbing);
+  const totalIncome   = (data.spending.income ?? []).reduce((s, i) => s + i.amt, 0);
+  const totalExpenses = data.spending.txns.reduce((s, e) => s + e.amt, 0);
+  const balance       = totalIncome - totalExpenses;
   const fitness = data.fitness;
   const jobs = data.jobs;
 
@@ -67,20 +69,19 @@ export function HomeScreen() {
             <Box title="SPENDING">
               <View style={styles.row}>
                 <View style={styles.statBlock}>
-                  <Comment>{'// month'}</Comment>
-                  <Text style={[styles.bigNum, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>
+                  <Comment>{'// balance'}</Comment>
+                  <Text style={[styles.bigNum, { color: balance >= 0 ? '#3aff7a' : '#ff6a5a', fontFamily: FONTS.jetbrains }]}>
+                    {balance >= 0 ? '+' : ''}{fmtMoney(balance)}
+                  </Text>
+                </View>
+                <View style={styles.statBlock}>
+                  <Comment>{'// this month'}</Comment>
+                  <Text style={[styles.bigNum, { color: totals.left < 0 ? '#ff6a5a' : theme.accentHot, fontFamily: FONTS.jetbrains }]}>
                     {fmtMoney(totals.monthTotal)}
                   </Text>
                   <Mono style={[styles.small, { color: theme.muted }]}>{`of ${fmtMoney(totals.budget)}`}</Mono>
                 </View>
-                <View style={styles.statBlock}>
-                  <Comment>{'// left'}</Comment>
-                  <Text style={[styles.bigNum, { color: totals.left < 0 ? '#ff6a5a' : theme.accentHot, fontFamily: FONTS.jetbrains }]}>
-                    {fmtMoney(totals.left)}
-                  </Text>
-                </View>
               </View>
-              <BlockBar pct={totals.pct} />
               <Bars values={data.spending.cats.map(c => c.spent)} height={56} labels={data.spending.cats.map(c => c.name)} showAllLabels />
             </Box>
 
@@ -149,7 +150,7 @@ export function HomeScreen() {
         {homeMode === 'brief' && (
           <Box title="SYSTEM BRIEF">
             {[
-              `spend   ${fmtMoney(totals.monthTotal)} / ${fmtMoney(totals.budget)}  (${totals.pct}%)`,
+              `balance ${balance >= 0 ? '+' : ''}${fmtMoney(balance)}  (${fmtMoney(totals.monthTotal)} this month)`,
               `fitness ${fitness.streak}d streak · ${fitness.weight}kg`,
               `jobs    ${jobCount} apps · ${activeJobCount} active`,
               `climbing ${stats.sent} sends · max ${stats.max}`,
@@ -164,7 +165,7 @@ export function HomeScreen() {
         {homeMode === 'grid' && (
           <View style={styles.grid}>
             {[
-              { label: 'BUDGET', val: `${totals.pct}%` },
+              { label: 'BALANCE', val: `${balance >= 0 ? '+' : ''}${fmtMoney(balance)}` },
               { label: 'STREAK', val: `${fitness.streak}d` },
               { label: 'WEIGHT', val: `${fitness.weight}kg` },
               { label: 'SENDS', val: `${stats.sent}` },

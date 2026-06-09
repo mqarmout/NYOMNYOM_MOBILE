@@ -34,7 +34,7 @@ export async function apiLogout(): Promise<void> {
 
 export async function apiLoadAll(user: { username: string }): Promise<Partial<AppData>> {
   const [
-    cats, expenses, analytics,
+    cats, expenses, analytics, income,
     workouts, runs, metrics,
     climbs,
     jobs,
@@ -48,9 +48,10 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
     apiFetch<unknown[]>('/api/categories'),
     apiFetch<unknown[]>('/api/expenses'),
     apiFetch<ServerAnalytics>('/api/analytics'),
+    apiFetch<unknown[]>('/api/income'),
     apiFetch<unknown[]>('/api/fitness/workouts'),
     apiFetch<unknown[]>('/api/runs'),
-    apiFetch<unknown[]>('/api/fitness/metrics/history'),
+    apiFetch<unknown[]>('/api/fitness/metrics'),
     apiFetch<unknown[]>('/api/climbing'),
     apiFetch<unknown[]>('/api/jobs'),
     apiFetch<unknown[]>('/api/hydro/readings'),
@@ -70,6 +71,7 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
       (cats.data as Parameters<typeof mapSpending>[0]) ?? [],
       (expenses.data as Parameters<typeof mapSpending>[1]) ?? [],
       analytics.data ?? {},
+      (income.data as Parameters<typeof mapSpending>[3]) ?? [],
     ),
     fitness: mapFitness(
       (workouts.data as Parameters<typeof mapFitness>[0]) ?? [],
@@ -243,6 +245,27 @@ export async function apiLogDose(x: {
     body: JSON.stringify(x),
   });
   return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiAddBodyWeight(x: {
+  weight: number;
+  date: string;
+}): Promise<{ id: number } | null> {
+  const res = await apiFetch<{ id?: number }>('/api/fitness/metrics', {
+    method: 'POST',
+    body: JSON.stringify(x),
+  });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiUpdateIncome(id: string, x: {
+  amount: number; description: string; source: string; date: string;
+}): Promise<void> {
+  await apiFetch(`/api/income/${id}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
+export async function apiDeleteIncome(id: string): Promise<void> {
+  await apiFetch(`/api/income/${id}`, { method: 'DELETE' });
 }
 
 export async function apiAddPrint(x: {

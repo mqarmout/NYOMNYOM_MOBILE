@@ -8,6 +8,7 @@ export function seed(): AppData {
       cats: [],
       catIds: {},
       txns: [],
+      income: [],
     },
     fitness: {
       streak: 0,

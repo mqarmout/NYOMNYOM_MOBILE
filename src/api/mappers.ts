@@ -1,7 +1,7 @@
 // Maps server response shapes → store types.
 // Server uses snake_case column names; store uses camelCase with different field names.
 import type {
-  AppData, User, Category, Expense, Spending,
+  AppData, User, Category, Expense, IncomeEntry, Spending,
   Workout, WorkoutSet, Run, Fitness,
   Send, Climbing,
   ColId, Job, Jobs,
@@ -48,6 +48,11 @@ interface ServerExpense {
   date: string; created_at: string;
 }
 
+interface ServerIncome {
+  id: number; amount: number; description: string;
+  source: string; date: string; created_at: string;
+}
+
 export interface ServerAnalytics {
   effective_budget?: number;
   total?: number;
@@ -58,6 +63,7 @@ export function mapSpending(
   serverCats: ServerCategory[],
   serverExpenses: ServerExpense[],
   analytics: ServerAnalytics = {},
+  serverIncome: ServerIncome[] = [],
 ): Spending {
   // by_category from analytics includes per-category spent for the current month
   const cats: ServerCategory[] = analytics.by_category ?? serverCats;
@@ -95,7 +101,16 @@ export function mapSpending(
       };
     });
 
-  return { budget, cats: mappedCats, catIds, txns };
+  const income: IncomeEntry[] = serverIncome.map(e => ({
+    id: sid(e.id),
+    createdAt: e.created_at,
+    description: e.description,
+    source: e.source,
+    amt: Number(e.amount),
+    date: e.date,
+  }));
+
+  return { budget, cats: mappedCats, catIds, txns, income };
 }
 
 // ── Fitness ───────────────────────────────────────────────────────────────────
@@ -189,7 +204,7 @@ export function mapFitness(
     weekEnd.setDate(weekStart.getDate() + 7);
     const km = serverRuns
       .filter(r => {
-        const d = new Date(r.date);
+        const d = new Date(r.date.length === 10 ? r.date + 'T00:00:00' : r.date);
         return d >= weekStart && d < weekEnd;
       })
       .reduce((s, r) => s + r.distance_km, 0);
@@ -197,9 +212,10 @@ export function mapFitness(
     runWeekLabels.push(weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
   }
 
-  const weightDates = serverMetrics.slice(0, 12).map(m =>
-    new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  ).reverse();
+  const weightDates = serverMetrics.slice(0, 12).map(m => {
+    const d = new Date(m.date.length === 10 ? m.date + 'T00:00:00' : m.date);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }).reverse();
 
   return { streak, weight: latestWeight, weightHistory, weightDates, weekSessions, workouts, runs, runWeekKm, runWeekLabels };
 }
@@ -216,16 +232,18 @@ interface ServerClimb {
 }
 
 export function mapClimbing(serverClimbs: ServerClimb[]): Climbing {
-  const sentClimbs = serverClimbs.filter(c => c.sent);
   const pyramid: Record<string, number> = {};
   let flashes = 0;
-  let projects = 0;
+  const projects = serverClimbs.filter(c => !c.sent).length;
 
-  const sends: Send[] = sentClimbs.map(c => {
+  const sends: Send[] = serverClimbs.map(c => {
     const grade = (c.my_grade ?? c.setter_grade ?? 'V?').toUpperCase();
-    pyramid[grade] = (pyramid[grade] ?? 0) + 1;
+    if (c.sent) {
+      pyramid[grade] = (pyramid[grade] ?? 0) + 1;
+    }
     let style: Send['style'];
-    if (c.flash) { style = 'flash'; flashes++; }
+    if (!c.sent) style = 'project';
+    else if (c.flash) { style = 'flash'; flashes++; }
     else if (c.attempts === 1) style = 'onsight';
     else style = 'redpoint';
     return {
@@ -240,8 +258,6 @@ export function mapClimbing(serverClimbs: ServerClimb[]): Climbing {
       photo_path: c.photo_path ?? undefined,
     };
   });
-
-  projects = serverClimbs.filter(c => !c.sent).length;
 
   return { pyramid, flashes, projects, sends };
 }
