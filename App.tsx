@@ -58,7 +58,6 @@ function AppInner() {
   const [addJobOpen, setAddJobOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [logDoseOpen, setLogDoseOpen] = useState(false);
-  const [logPrintOpen, setLogPrintOpen] = useState(false);
 
   if (!hydrated || !fontsLoaded) {
     const p = PALETTES[palette];
@@ -84,7 +83,7 @@ function AppInner() {
             <JobsScreen onAddJob={() => setAddJobOpen(true)} />
             <PortfolioScreen />
             <ProjectsScreen onAddTask={() => setAddTaskOpen(true)} />
-            <PrintsScreen onLogPrint={() => setLogPrintOpen(true)} />
+            <PrintsScreen />
           </SectionPager>
 
           <TabBar onMorePress={() => setMoreOpen(true)} />

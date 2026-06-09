@@ -8,7 +8,7 @@ import type {
   Dose, Hydro, Tank,
   Task, TaskCol, TaskTag, Repo, Projects,
   PortfolioItem, Portfolio,
-  PrintJob, PrintStats, Prints,
+  PrintJob, PrintProject, PrintProfile, PrintStats, Prints,
 } from '../data/types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -427,6 +427,43 @@ export function mapPortfolio(serverProjects: ServerPortfolioProject[]): Portfoli
 
 // ── Prints ────────────────────────────────────────────────────────────────────
 
-export function mapPrints(serverJobs: PrintJob[], serverStats: PrintStats | null): Prints {
-  return { jobs: serverJobs, stats: serverStats };
+interface ServerPrintProject {
+  id: number; name: string; notes?: string; created_at: string;
+  prints: PrintJob[];
+  total_time: number; total_cost: number;
+  materials: { material: string; grams: number }[];
+}
+
+interface ServerPrintProfile {
+  id: number; name: string; material: string;
+  filament_cost_per_kg: number; printer_wattage: number; electricity_rate: number;
+}
+
+export function mapPrints(
+  serverJobs: PrintJob[],
+  serverProjects: ServerPrintProject[],
+  serverProfiles: ServerPrintProfile[],
+  serverStats: PrintStats | null,
+): Prints {
+  const projects: PrintProject[] = serverProjects.map(p => ({
+    id: p.id,
+    name: p.name,
+    notes: p.notes,
+    createdAt: p.created_at,
+    prints: Array.isArray(p.prints) ? p.prints : [],
+    totalTime: p.total_time ?? 0,
+    totalCost: p.total_cost ?? 0,
+    materials: Array.isArray(p.materials) ? p.materials : [],
+  }));
+
+  const profiles: PrintProfile[] = serverProfiles.map(p => ({
+    id: p.id,
+    name: p.name,
+    material: p.material,
+    filamentCostPerKg: p.filament_cost_per_kg,
+    printerWattage: p.printer_wattage,
+    electricityRate: p.electricity_rate,
+  }));
+
+  return { jobs: serverJobs, projects, profiles, stats: serverStats };
 }

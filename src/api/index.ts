@@ -43,6 +43,8 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
     portfolio,
     about,
     prints,
+    printProjects,
+    printProfiles,
     printStats,
   ] = await Promise.all([
     apiFetch<unknown[]>('/api/categories'),
@@ -62,6 +64,8 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
     apiFetch<unknown[]>('/api/portfolio/projects'),
     apiFetch<Record<string, string>>('/api/portfolio/about'),
     apiFetch<unknown[]>('/api/prints'),
+    apiFetch<unknown[]>('/api/prints/projects'),
+    apiFetch<unknown[]>('/api/prints/profiles'),
     apiFetch<unknown>('/api/prints/stats'),
   ]);
 
@@ -92,7 +96,9 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
     portfolio: mapPortfolio((portfolio.data as Parameters<typeof mapPortfolio>[0]) ?? []),
     prints: mapPrints(
       (prints.data as Parameters<typeof mapPrints>[0]) ?? [],
-      (printStats.data as Parameters<typeof mapPrints>[1]) ?? null,
+      (printProjects.data as Parameters<typeof mapPrints>[1]) ?? [],
+      (printProfiles.data as Parameters<typeof mapPrints>[2]) ?? [],
+      (printStats.data as Parameters<typeof mapPrints>[3]) ?? null,
     ),
   };
 }
@@ -266,6 +272,57 @@ export async function apiUpdateIncome(id: string, x: {
 
 export async function apiDeleteIncome(id: string): Promise<void> {
   await apiFetch(`/api/income/${id}`, { method: 'DELETE' });
+}
+
+export async function apiCreateProject(name: string, notes?: string): Promise<{ id: number } | null> {
+  const res = await apiFetch<{ id?: number }>('/api/prints/projects', {
+    method: 'POST',
+    body: JSON.stringify({ name, notes }),
+  });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiDeleteProject(id: number): Promise<void> {
+  await apiFetch(`/api/prints/projects/${id}`, { method: 'DELETE' });
+}
+
+export async function apiAddPrintToProject(projectId: number, x: {
+  name: string; print_time_min: number; filament_used_g: number;
+  filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number;
+  material?: string; color?: string; status?: string; notes?: string; date?: string;
+}): Promise<{ id: number } | null> {
+  const res = await apiFetch<{ id?: number }>(`/api/prints/projects/${projectId}/prints`, {
+    method: 'POST',
+    body: JSON.stringify({ date: new Date().toISOString().slice(0, 10), ...x }),
+  });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiUpdatePrint(id: number, x: object): Promise<void> {
+  await apiFetch(`/api/prints/${id}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
+export async function apiDeletePrint(id: number): Promise<void> {
+  await apiFetch(`/api/prints/${id}`, { method: 'DELETE' });
+}
+
+export async function apiCreateProfile(x: {
+  name: string; material: string; filament_cost_per_kg: number;
+  printer_wattage: number; electricity_rate: number;
+}): Promise<{ id: number } | null> {
+  const res = await apiFetch<{ id?: number }>('/api/prints/profiles', {
+    method: 'POST',
+    body: JSON.stringify(x),
+  });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiUpdateProfile(id: number, x: object): Promise<void> {
+  await apiFetch(`/api/prints/profiles/${id}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
+export async function apiDeleteProfile(id: number): Promise<void> {
+  await apiFetch(`/api/prints/profiles/${id}`, { method: 'DELETE' });
 }
 
 export async function apiAddPrint(x: {

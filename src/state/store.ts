@@ -9,6 +9,9 @@ import {
   apiLogin, apiMe, apiLogout, apiLoadAll,
   apiAddExpense, apiGetCategoryId, apiUpdateExpense, apiDeleteExpense,
   apiUpdateIncome, apiDeleteIncome,
+  apiCreateProject, apiDeleteProject, apiAddPrintToProject,
+  apiUpdatePrint, apiDeletePrint,
+  apiCreateProfile, apiUpdateProfile, apiDeleteProfile,
   apiAddWorkout, apiUpdateWorkout, apiDeleteWorkout,
   apiAddWorkoutSet, apiUpdateWorkoutSet, apiDeleteWorkoutSet,
   apiAddClimb, apiAddClimbPhoto, apiUpdateClimb,
@@ -59,6 +62,14 @@ interface AppState {
   addTask(x: { title: string; tag: string }): void;
   addBodyWeight(x: { weight: number; date: string }): Promise<void>;
   addPrint(x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string }): Promise<void>;
+  createProject(name: string, notes?: string): Promise<void>;
+  deleteProject(id: number): Promise<void>;
+  addPrintToProject(projectId: number, x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string }): Promise<void>;
+  updatePrint(id: number, x: object): Promise<void>;
+  deletePrint(id: number): Promise<void>;
+  createProfile(x: { name: string; material: string; filament_cost_per_kg: number; printer_wattage: number; electricity_rate: number }): Promise<void>;
+  updateProfile(id: number, x: object): Promise<void>;
+  deleteProfile(id: number): Promise<void>;
   reset(): void;
 }
 
@@ -359,6 +370,54 @@ export const useStore = create<AppState>()(
         await apiAddPrint(x).catch(() => {});
         await get().syncFromServer();
         get().pushToast('print logged', 'ok');
+      },
+
+      async createProject(name, notes) {
+        await apiCreateProject(name, notes).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('project created', 'ok');
+      },
+
+      async deleteProject(id) {
+        await apiDeleteProject(id).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('project deleted', 'ok');
+      },
+
+      async addPrintToProject(projectId, x) {
+        await apiAddPrintToProject(projectId, x).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('print logged', 'ok');
+      },
+
+      async updatePrint(id, x) {
+        await apiUpdatePrint(id, x).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('print updated', 'ok');
+      },
+
+      async deletePrint(id) {
+        await apiDeletePrint(id).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('print deleted', 'ok');
+      },
+
+      async createProfile(x) {
+        await apiCreateProfile(x).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('profile saved', 'ok');
+      },
+
+      async updateProfile(id, x) {
+        await apiUpdateProfile(id, x).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('profile updated', 'ok');
+      },
+
+      async deleteProfile(id) {
+        await apiDeleteProfile(id).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('profile deleted', 'ok');
       },
 
       reset() {

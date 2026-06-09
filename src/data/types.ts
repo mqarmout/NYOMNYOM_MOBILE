@@ -85,6 +85,7 @@ export interface Portfolio { items: PortfolioItem[]; }
 
 export interface PrintJob {
   id: number;
+  project_id: number | null;
   name: string;
   print_time_min: number;
   filament_used_g: number;
@@ -100,6 +101,24 @@ export interface PrintJob {
   notes: string | null;
   date: string;
 }
+export interface PrintProject {
+  id: number;
+  name: string;
+  notes?: string;
+  createdAt: string;
+  prints: PrintJob[];
+  totalTime: number;
+  totalCost: number;
+  materials: { material: string; grams: number }[];
+}
+export interface PrintProfile {
+  id: number;
+  name: string;
+  material: string;
+  filamentCostPerKg: number;
+  printerWattage: number;
+  electricityRate: number;
+}
 export interface PrintStats {
   total_prints: number;
   successful_prints: number;
@@ -110,7 +129,12 @@ export interface PrintStats {
   total_print_time_min: number;
   by_material: Record<string, number>;
 }
-export interface Prints { jobs: PrintJob[]; stats: PrintStats | null; }
+export interface Prints {
+  jobs: PrintJob[];
+  projects: PrintProject[];
+  profiles: PrintProfile[];
+  stats: PrintStats | null;
+}
 
 export interface AppData {
   user: User; spending: Spending; fitness: Fitness;
