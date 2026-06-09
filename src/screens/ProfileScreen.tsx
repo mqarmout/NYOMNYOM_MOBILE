@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable, Modal, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
 import { useStore } from '../state/store';
@@ -26,6 +27,7 @@ interface Props { open: boolean; onClose: () => void; }
 
 export function ProfileScreen({ open, onClose }: Props) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const auth = useStore(s => s.auth);
   const user = useStore(s => s.data.user);
   const palette = useStore(s => s.palette);
@@ -38,7 +40,7 @@ export function ProfileScreen({ open, onClose }: Props) {
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <View style={[styles.overlay, { backgroundColor: theme.bg }]}>
-        <View style={[styles.header, { borderBottomColor: theme.border }]}>
+        <View style={[styles.header, { borderBottomColor: theme.border, paddingTop: insets.top + 12 }]}>
           <Text style={[styles.title, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>{'// PROFILE'}</Text>
           <Pressable onPress={onClose} style={[styles.closeBtn, { borderColor: theme.borderHi, backgroundColor: theme.surface }]}>
             <PixelIcon kind="x" size={14} color={theme.accentDim} />
@@ -121,7 +123,7 @@ export function ProfileScreen({ open, onClose }: Props) {
 
 const styles = StyleSheet.create({
   overlay: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1 },
   title: { fontSize: 10, letterSpacing: 1.4 },
   closeBtn: { width: 34, height: 34, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 14, paddingBottom: 40, gap: 12 },

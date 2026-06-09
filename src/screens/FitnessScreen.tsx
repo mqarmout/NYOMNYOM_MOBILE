@@ -25,7 +25,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
   const [tab, setTab] = useState(0);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="FITNESS">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}
@@ -75,7 +75,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
         {tab === 1 && (
           <>
             <Box title="RUN VOLUME (KM/WEEK)">
-              <AreaSpark values={fitness.runWeekKm} height={80} />
+              <AreaSpark values={fitness.runWeekKm} height={80} labels={fitness.runWeekLabels} />
             </Box>
             <Box title={`RUNS (${fitness.runs.length})`}>
               {fitness.runs.slice(0, 30).map(run => (
@@ -104,7 +104,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                   <Text style={[styles.bigNum, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>{`${fitness.weight}kg`}</Text>
                 </View>
               </View>
-              <AreaSpark values={fitness.weightHistory} height={80} />
+              <AreaSpark values={fitness.weightHistory} height={80} labels={fitness.weightDates} />
             </Box>
           </>
         )}

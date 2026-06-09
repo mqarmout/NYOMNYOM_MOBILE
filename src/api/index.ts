@@ -1,5 +1,6 @@
 // All API endpoints. Each function returns typed data or throws on network failure.
-import { apiFetch, storeSessionCookie, clearSessionCookie } from './client';
+import { apiFetch, storeSessionCookie, clearSessionCookie, getStoredCookie } from './client';
+import { BASE_URL } from './config';
 import {
   mapUser, mapSpending, mapFitness, mapClimbing,
   mapJobs, mapHydro, mapProjects, mapPortfolio,
@@ -134,6 +135,20 @@ export async function apiAddClimb(x: {
     body: JSON.stringify(x),
   });
   return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiAddClimbPhoto(
+  climbId: number,
+  photo: { uri: string; type: string; name: string },
+): Promise<void> {
+  const cookie = await getStoredCookie();
+  const form = new FormData();
+  form.append('photo', { uri: photo.uri, type: photo.type, name: photo.name } as unknown as Blob);
+  await fetch(`${BASE_URL}/api/climbing/${climbId}/photo`, {
+    method: 'POST',
+    headers: cookie ? { Cookie: `session=${cookie}` } : {},
+    body: form,
+  });
 }
 
 export async function apiAddJob(x: {

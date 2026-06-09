@@ -8,7 +8,7 @@ import type { FontName } from '../theme/type';
 import {
   apiLogin, apiMe, apiLogout, apiLoadAll,
   apiAddExpense, apiGetCategoryId,
-  apiAddWorkout, apiAddClimb,
+  apiAddWorkout, apiAddClimb, apiAddClimbPhoto,
   apiAddJob, apiAddKanbanTask, apiLogDose,
 } from '../api';
 
@@ -39,7 +39,7 @@ interface AppState {
 
   addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
   addWorkout(x: { name: string; min?: string | number }): void;
-  logSend(x: { route: string; grade: string; style: string; gym?: string }): void;
+  logSend(x: { route: string; grade: string; style: string; gym?: string; climb_type?: string; attempts?: number; photo?: { uri: string; type: string; name: string } }): void;
   logDose(x: { tank: string; what: string; amt?: string }): void;
   addApplication(x: { co: string; role: string; comp: string }): void;
   addTask(x: { title: string; tag: string }): void;
@@ -149,25 +149,33 @@ export const useStore = create<AppState>()(
         apiAddWorkout({ name: name || 'Session', duration: parseInt(String(min ?? 45)) || 45, date: today() }).catch(() => {});
       },
 
-      logSend({ route, grade, style, gym }) {
+      logSend({ route, grade, style, gym, climb_type, attempts, photo }) {
         const g = (grade || 'V2').toUpperCase();
+        const ct = (climb_type || 'boulder') as 'boulder' | 'sport';
+        const att = attempts ?? 1;
         set(s => {
           const d = structuredClone(s.data);
-          d.climbing.sends.unshift({ id: nanoid(), createdAt: nowIso(), gym: gym || '', route: route || 'unnamed', grade: g, style: (style as 'flash' | 'onsight' | 'redpoint' | 'project') || 'redpoint' });
+          d.climbing.sends.unshift({ id: nanoid(), createdAt: nowIso(), gym: gym || '', route: route || 'unnamed', grade: g, style: (style as 'flash' | 'onsight' | 'redpoint' | 'project') || 'redpoint', climb_type: ct, attempts: att });
           d.climbing.pyramid[g] = (d.climbing.pyramid[g] ?? 0) + 1;
           if (style === 'flash' || style === 'onsight') d.climbing.flashes += 1;
           return { data: d };
         });
         get().pushToast('send logged · ' + g + ' ' + (route || ''), 'ok');
         apiAddClimb({
-          climb_type: 'boulder',
+          climb_type: ct,
           name: route || 'unnamed',
           location: gym || '',
           my_grade: g,
           sent: 1,
           flash: style === 'flash' ? 1 : 0,
-          attempts: 1,
+          attempts: att,
           date: today(),
+        }).then(result => {
+          if (result && photo) {
+            return apiAddClimbPhoto(result.id, photo);
+          }
+        }).then(() => {
+          if (photo) get().syncFromServer();
         }).catch(() => {});
       },
 

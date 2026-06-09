@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Pattern, Rect, Stop, RadialGradient } from 'react-native-svg';
 import { useTheme } from '../../theme/ThemeProvider';
+import { FONTS } from '../../theme/type';
 
 function Scanlines() {
   const { width, height } = useWindowDimensions();
@@ -38,11 +39,19 @@ function Vignette() {
   );
 }
 
-export function CRTScreen({ children }: { children: React.ReactNode }) {
+interface Props { children: React.ReactNode; title?: string; }
+
+export function CRTScreen({ children, title }: Props) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.container, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
+      {title && (
+        <View style={[styles.topBar, { borderBottomColor: theme.border }]}>
+          <Text style={[styles.topBarSection, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>{'// '}</Text>
+          <Text style={[styles.topBarTitle, { color: theme.accent, fontFamily: FONTS.jetbrains }]}>{title}</Text>
+        </View>
+      )}
       {children}
       <Scanlines />
       <Vignette />
@@ -52,4 +61,13 @@ export function CRTScreen({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, position: 'relative' },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  topBarSection: { fontSize: 10, letterSpacing: 1 },
+  topBarTitle: { fontSize: 10, letterSpacing: 1.6 },
 });

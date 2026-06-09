@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
 import { useStore, climbStats } from '../state/store';
@@ -10,6 +10,7 @@ import { SubTabs } from '../components/crt/SubTabs';
 import { GradePyramid } from '../components/crt/charts/GradePyramid';
 import { Fab } from '../components/crt/Fab';
 import { fmtDay } from '../utils/format';
+import { BASE_URL } from '../api/config';
 import type { Send } from '../data/types';
 
 const TABS = ['LOG', 'PYRAMID', 'STATS'];
@@ -31,7 +32,7 @@ export function ClimbingScreen({ onLogSend }: Props) {
   const stats = climbStats(climbing);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="CLIMBING">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}
@@ -41,17 +42,32 @@ export function ClimbingScreen({ onLogSend }: Props) {
           <Box title={`SENDS (${climbing.sends.length})`}>
             {climbing.sends.map(s => (
               <View key={s.id} style={[styles.sendRow, { borderBottomColor: theme.border }]}>
-                <View style={[styles.grade, { borderColor: STYLE_COLORS[s.style] ?? theme.border }]}>
-                  <Text style={[styles.gradeText, { color: STYLE_COLORS[s.style] ?? theme.accent, fontFamily: FONTS.jetbrains }]}>{s.grade}</Text>
-                </View>
+                {s.photo_path ? (
+                  <Image
+                    source={{ uri: `${BASE_URL}/api/climbing/photos/${s.photo_path}` }}
+                    style={[styles.photo, { borderColor: STYLE_COLORS[s.style] ?? theme.border }]}
+                  />
+                ) : (
+                  <View style={[styles.grade, { borderColor: STYLE_COLORS[s.style] ?? theme.border }]}>
+                    <Text style={[styles.gradeText, { color: STYLE_COLORS[s.style] ?? theme.accent, fontFamily: FONTS.jetbrains }]}>{s.grade}</Text>
+                  </View>
+                )}
                 <View style={styles.sendInfo}>
                   <Text style={[styles.sendRoute, { color: theme.cream, fontFamily: FONTS.jetbrains }]}>{s.route}</Text>
                   <View style={styles.sendMeta}>
-                    <Text style={[styles.sendGym, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>{s.gym}</Text>
+                    <Text style={[styles.typeTag, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>
+                      {`[${(s.climb_type ?? 'boulder').toUpperCase()}]`}
+                    </Text>
+                    <Text style={[styles.gradeTag, { color: STYLE_COLORS[s.style] ?? theme.muted, fontFamily: FONTS.jetbrains }]}>
+                      {s.grade}
+                    </Text>
                     <Text style={[styles.sendStyle, { color: STYLE_COLORS[s.style] ?? theme.muted, fontFamily: FONTS.jetbrains }]}>
-                      {`[${s.style.toUpperCase()}]`}
+                      {`${s.style.toUpperCase()} · ${s.attempts}${s.attempts === 1 ? ' try' : ' tries'}`}
                     </Text>
                   </View>
+                  {s.gym ? (
+                    <Mono style={{ color: theme.muted, fontSize: 10 }}>{s.gym}</Mono>
+                  ) : null}
                 </View>
                 <Mono style={{ color: theme.muted, fontSize: 10 }}>{fmtDay(s.createdAt)}</Mono>
               </View>
@@ -102,13 +118,15 @@ export function ClimbingScreen({ onLogSend }: Props) {
 const styles = StyleSheet.create({
   content: { padding: 14, paddingBottom: 120, gap: 12 },
   sendRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1 },
+  photo: { width: 54, height: 54, borderWidth: 1, resizeMode: 'cover' },
   grade: { width: 44, height: 44, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   gradeText: { fontSize: 13, fontWeight: '700' },
   sendInfo: { flex: 1, gap: 3 },
   sendRoute: { fontSize: 13 },
-  sendMeta: { flexDirection: 'row', gap: 8 },
-  sendGym: { fontSize: 10 },
-  sendStyle: { fontSize: 10, letterSpacing: 0.8 },
+  sendMeta: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  typeTag: { fontSize: 10, letterSpacing: 0.6 },
+  gradeTag: { fontSize: 10, letterSpacing: 0.6 },
+  sendStyle: { fontSize: 10, letterSpacing: 0.6 },
   statRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1 },
   statVal: { fontSize: 16 },
   styleTag: { fontSize: 10, letterSpacing: 0.8 },

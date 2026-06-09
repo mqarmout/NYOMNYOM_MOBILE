@@ -35,7 +35,7 @@ export function JobsScreen({ onAddJob }: Props) {
   const active = (board.screening?.length ?? 0) + (board.interview?.length ?? 0);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="JOBS">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}

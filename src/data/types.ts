@@ -20,15 +20,18 @@ export interface Spending { budget: number; cats: Category[]; txns: Expense[]; }
 export interface Workout { id: string; createdAt: string; name: string; min: number; sets: number; }
 export interface Run { id: string; createdAt: string; label: string; distanceKm: number; paceSecPerKm: number; durationSec: number; }
 export interface Fitness {
-  streak: number; weight: number; weightHistory: number[];
+  streak: number; weight: number; weightHistory: number[]; weightDates: string[];
   weekSessions: number[]; workouts: Workout[];
-  runs: Run[]; runWeekKm: number[];
+  runs: Run[]; runWeekKm: number[]; runWeekLabels: string[];
 }
 
 export interface Send {
   id: string; createdAt: string;
   gym: string; route: string; grade: string;
   style: 'flash' | 'onsight' | 'redpoint' | 'project';
+  climb_type: 'boulder' | 'sport';
+  attempts: number;
+  photo_path?: string;
 }
 export interface Climbing {
   pyramid: Record<string, number>; flashes: number; projects: number; sends: Send[];

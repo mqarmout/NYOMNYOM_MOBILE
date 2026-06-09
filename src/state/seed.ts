@@ -12,10 +12,12 @@ export function seed(): AppData {
       streak: 0,
       weight: 0,
       weightHistory: [],
+      weightDates: [],
       weekSessions: [0, 0, 0, 0, 0, 0, 0],
       workouts: [],
       runs: [],
       runWeekKm: [],
+      runWeekLabels: [],
     },
     climbing: {
       pyramid: {},

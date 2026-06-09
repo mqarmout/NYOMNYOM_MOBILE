@@ -24,7 +24,7 @@ export function SpendingScreen({ onAddExpense }: Props) {
   const totals = spendTotals(data.spending);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="SPENDING">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}

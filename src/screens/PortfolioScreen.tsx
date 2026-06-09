@@ -24,7 +24,7 @@ export function PortfolioScreen() {
   const [tab, setTab] = useState(0);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="PORTFOLIO">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}

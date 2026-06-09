@@ -23,7 +23,7 @@ export function HydroScreen({ onLogDose }: Props) {
   const [tab, setTab] = useState(0);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="HYDRO">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}

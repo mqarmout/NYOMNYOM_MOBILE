@@ -164,6 +164,7 @@ export function mapFitness(
   }
 
   const runWeekKm: number[] = [];
+  const runWeekLabels: string[] = [];
   // Last 8 weeks of run km
   for (let i = 7; i >= 0; i--) {
     const weekStart = new Date(monday);
@@ -177,18 +178,25 @@ export function mapFitness(
       })
       .reduce((s, r) => s + r.distance_km, 0);
     runWeekKm.push(Math.round(km * 10) / 10);
+    runWeekLabels.push(weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
   }
 
-  return { streak, weight: latestWeight, weightHistory, weekSessions, workouts, runs, runWeekKm };
+  const weightDates = serverMetrics.slice(0, 12).map(m =>
+    new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  ).reverse();
+
+  return { streak, weight: latestWeight, weightHistory, weightDates, weekSessions, workouts, runs, runWeekKm, runWeekLabels };
 }
 
 // ── Climbing ──────────────────────────────────────────────────────────────────
 
 interface ServerClimb {
   id: number; name: string | null; location: string | null;
+  climb_type: string | null;
   my_grade: string | null; setter_grade: string | null;
   sent: number; flash: number; attempts: number;
   date: string; created_at: string;
+  photo_path: string | null;
 }
 
 export function mapClimbing(serverClimbs: ServerClimb[]): Climbing {
@@ -206,11 +214,14 @@ export function mapClimbing(serverClimbs: ServerClimb[]): Climbing {
     else style = 'redpoint';
     return {
       id: sid(c.id),
-      createdAt: c.created_at,
-      gym: c.location ?? 'unknown',
+      createdAt: c.date ?? c.created_at,
+      gym: c.location ?? '',
       route: c.name ?? 'unnamed',
       grade,
       style,
+      climb_type: (c.climb_type === 'sport' ? 'sport' : 'boulder') as 'boulder' | 'sport',
+      attempts: c.attempts ?? 1,
+      photo_path: c.photo_path ?? undefined,
     };
   });
 

@@ -37,7 +37,7 @@ export function ProjectsScreen({ onAddTask }: Props) {
   const [tab, setTab] = useState(0);
 
   return (
-    <CRTScreen>
+    <CRTScreen title="PROJECTS">
       <SubTabs tabs={TABS} active={tab} onSelect={setTab} />
       <PullToRefresh
         onRefresh={syncFromServer}

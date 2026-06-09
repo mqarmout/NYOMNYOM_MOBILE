@@ -4,7 +4,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { BASE_URL, COOKIE_KEY } from './config';
 
-async function getStoredCookie(): Promise<string | null> {
+export async function getStoredCookie(): Promise<string | null> {
   return SecureStore.getItemAsync(COOKIE_KEY);
 }
 
