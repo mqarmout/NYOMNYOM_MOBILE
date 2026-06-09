@@ -2,7 +2,7 @@
 // Server uses snake_case column names; store uses camelCase with different field names.
 import type {
   AppData, User, Category, Expense, Spending,
-  Workout, Run, Fitness,
+  Workout, WorkoutSet, Run, Fitness,
   Send, Climbing,
   ColId, Job, Jobs,
   Dose, Hydro, Tank,
@@ -70,9 +70,11 @@ export function mapSpending(
 
   const catSpentMap: Record<string, number> = {};
   const catBudgetMap: Record<string, number> = {};
+  const catIds: Record<string, number> = {};
   for (const c of cats) {
     catSpentMap[c.name] = Number(c.spent ?? 0);
     catBudgetMap[c.name] = Number(c.budget ?? 0);
+    catIds[c.name] = c.id;
   }
 
   const txns: Expense[] = serverExpenses
@@ -85,19 +87,25 @@ export function mapSpending(
         createdAt: e.created_at,
         merchant: e.description,
         cat: e.category_name,
+        catId: e.category_id,
         amt: Number(e.amount),
         over: catBudget > 0 && catSpent > catBudget,
+        date: e.date ?? e.created_at.slice(0, 10),
       };
     });
 
-  return { budget, cats: mappedCats, txns };
+  return { budget, cats: mappedCats, catIds, txns };
 }
 
 // ── Fitness ───────────────────────────────────────────────────────────────────
 
+interface ServerSet {
+  id: number; exercise: string;
+  sets: number | null; reps: number | null; weight: number | null; duration: number | null;
+}
 interface ServerWorkout {
   id: number; name: string; duration: number | null;
-  created_at: string; sets?: unknown[];
+  created_at: string; sets?: ServerSet[];
 }
 
 interface ServerRun {
@@ -117,7 +125,14 @@ export function mapFitness(
     createdAt: w.created_at,
     name: w.name,
     min: w.duration ?? 45,
-    sets: Array.isArray(w.sets) ? w.sets.length : 0,
+    sets: Array.isArray(w.sets) ? w.sets.map(s => ({
+      id: sid(s.id),
+      exercise: s.exercise,
+      sets: s.sets ?? null,
+      reps: s.reps ?? null,
+      weight: s.weight ?? null,
+      duration: s.duration ?? null,
+    } satisfies WorkoutSet)) : [],
   }));
 
   const runs: Run[] = serverRuns.map(r => {

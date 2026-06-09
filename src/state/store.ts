@@ -7,9 +7,11 @@ import type { PaletteName } from '../theme/palettes';
 import type { FontName } from '../theme/type';
 import {
   apiLogin, apiMe, apiLogout, apiLoadAll,
-  apiAddExpense, apiGetCategoryId,
-  apiAddWorkout, apiAddClimb, apiAddClimbPhoto, apiUpdateClimb,
-  apiAddJob, apiAddKanbanTask, apiLogDose,
+  apiAddExpense, apiGetCategoryId, apiUpdateExpense, apiDeleteExpense,
+  apiAddWorkout, apiUpdateWorkout, apiDeleteWorkout,
+  apiAddWorkoutSet, apiUpdateWorkoutSet, apiDeleteWorkoutSet,
+  apiAddClimb, apiAddClimbPhoto, apiUpdateClimb,
+  apiAddJob, apiAddKanbanTask, apiLogDose, apiStravaImport,
 } from '../api';
 
 export const PAGER: SectionId[] = [
@@ -38,7 +40,14 @@ interface AppState {
   clearToast(id: number): void;
 
   addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
+  updateExpense(x: { id: string; merchant: string; amt: number; cat: string; catId: number; date: string }): void;
+  deleteExpense(id: string): void;
   addWorkout(x: { name: string; min?: string | number }): void;
+  updateWorkout(x: { id: string; name: string; min: number }): void;
+  deleteWorkout(id: string): void;
+  updateWorkoutSet(x: { workoutId: string; setId: string; exercise: string; sets: number | null; reps: number | null; weight: number | null; duration: number | null }): void;
+  deleteWorkoutSet(x: { workoutId: string; setId: string }): void;
+  stravaImport(): Promise<void>;
   logSend(x: { route: string; grade: string; style: string; gym?: string; climb_type?: string; attempts?: number; photo?: { uri: string; type: string; name: string } }): void;
   updateClimb(x: { id: string; route: string; grade: string; style: string; gym?: string; climb_type?: string; attempts?: number; photo?: { uri: string; type: string; name: string } }): void;
   logDose(x: { tank: string; what: string; amt?: string }): void;
@@ -128,7 +137,7 @@ export const useStore = create<AppState>()(
           const d = structuredClone(s.data);
           const c = d.spending.cats.find(x => x.name === cat);
           const over = c ? c.spent + a > c.budget : false;
-          d.spending.txns.unshift({ id: nanoid(), createdAt: nowIso(), merchant: merchant || 'untitled', cat: cat || 'misc', amt: a, over });
+          d.spending.txns.unshift({ id: nanoid(), createdAt: nowIso(), merchant: merchant || 'untitled', cat: cat || 'misc', catId: 0, amt: a, over, date: today() });
           if (c) c.spent = +(c.spent + a).toFixed(2);
           return { data: d };
         });
@@ -143,11 +152,92 @@ export const useStore = create<AppState>()(
       addWorkout({ name, min }) {
         set(s => {
           const d = structuredClone(s.data);
-          d.fitness.workouts.unshift({ id: nanoid(), createdAt: nowIso(), name: name || 'Session', min: parseInt(String(min ?? 45)) || 45, sets: 0 });
+          d.fitness.workouts.unshift({ id: nanoid(), createdAt: nowIso(), name: name || 'Session', min: parseInt(String(min ?? 45)) || 45, sets: [] });
           return { data: d };
         });
         get().pushToast('workout logged · ' + (name || 'session'), 'ok');
         apiAddWorkout({ name: name || 'Session', duration: parseInt(String(min ?? 45)) || 45, date: today() }).catch(() => {});
+      },
+
+      updateExpense({ id, merchant, amt, cat, catId, date }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          const idx = d.spending.txns.findIndex(t => t.id === id);
+          if (idx >= 0) d.spending.txns[idx] = { ...d.spending.txns[idx]!, merchant, amt, cat, catId, date };
+          return { data: d };
+        });
+        get().pushToast('expense updated', 'ok');
+        apiUpdateExpense(id, { amount: amt, description: merchant, category_id: catId, date }).catch(() => {});
+        setTimeout(() => get().syncFromServer(), 500);
+      },
+
+      deleteExpense(id) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.spending.txns = d.spending.txns.filter(t => t.id !== id);
+          return { data: d };
+        });
+        get().pushToast('expense deleted', 'ok');
+        apiDeleteExpense(id).catch(() => {});
+      },
+
+      updateWorkout({ id, name, min }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          const w = d.fitness.workouts.find(w => w.id === id);
+          if (w) { w.name = name; w.min = min; }
+          return { data: d };
+        });
+        get().pushToast('workout updated', 'ok');
+        apiUpdateWorkout(id, { name, duration: min, date: today() }).catch(() => {});
+      },
+
+      deleteWorkout(id) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.fitness.workouts = d.fitness.workouts.filter(w => w.id !== id);
+          return { data: d };
+        });
+        get().pushToast('workout deleted', 'ok');
+        apiDeleteWorkout(id).catch(() => {});
+      },
+
+      updateWorkoutSet({ workoutId, setId, exercise, sets, reps, weight, duration }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          const w = d.fitness.workouts.find(w => w.id === workoutId);
+          if (w) {
+            const si = w.sets.findIndex(s => s.id === setId);
+            if (si >= 0) w.sets[si] = { id: setId, exercise, sets, reps, weight, duration };
+          }
+          return { data: d };
+        });
+        apiUpdateWorkoutSet(setId, { exercise, sets, reps, weight, duration }).catch(() => {});
+      },
+
+      deleteWorkoutSet({ workoutId, setId }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          const w = d.fitness.workouts.find(w => w.id === workoutId);
+          if (w) w.sets = w.sets.filter(s => s.id !== setId);
+          return { data: d };
+        });
+        apiDeleteWorkoutSet(setId).catch(() => {});
+      },
+
+      async stravaImport() {
+        const { auth } = get();
+        if (!auth) return;
+        set({ syncing: true });
+        try {
+          const result = await apiStravaImport();
+          await get().syncFromServer();
+          if (result.imported > 0) get().pushToast(`${result.imported} new runs imported`, 'ok');
+          else get().pushToast('runs up to date', 'ok');
+        } catch {
+          set({ syncing: false });
+          get().pushToast('strava sync failed', 'warn');
+        }
       },
 
       logSend({ route, grade, style, gym, climb_type, attempts, photo }) {

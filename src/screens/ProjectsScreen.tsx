@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
@@ -34,7 +34,9 @@ export function ProjectsScreen({ onAddTask }: Props) {
   const theme = useTheme();
   const projects = useStore(s => s.data.projects);
   const syncFromServer = useStore(s => s.syncFromServer);
+  const section = useStore(s => s.section);
   const [tab, setTab] = useState(0);
+  useEffect(() => { if (section !== 'projects') setTab(0); }, [section]);
 
   return (
     <CRTScreen title="PROJECTS">

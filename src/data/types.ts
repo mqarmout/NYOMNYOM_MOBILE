@@ -13,11 +13,15 @@ export interface User {
 export interface Category { name: string; spent: number; budget: number; }
 export interface Expense {
   id: string; createdAt: string;
-  merchant: string; cat: string; amt: number; over: boolean;
+  merchant: string; cat: string; catId: number; amt: number; over: boolean; date: string;
 }
-export interface Spending { budget: number; cats: Category[]; txns: Expense[]; }
+export interface Spending { budget: number; cats: Category[]; catIds: Record<string, number>; txns: Expense[]; }
 
-export interface Workout { id: string; createdAt: string; name: string; min: number; sets: number; }
+export interface WorkoutSet {
+  id: string; exercise: string;
+  sets: number | null; reps: number | null; weight: number | null; duration: number | null;
+}
+export interface Workout { id: string; createdAt: string; name: string; min: number; sets: WorkoutSet[]; }
 export interface Run { id: string; createdAt: string; label: string; distanceKm: number; paceSecPerKm: number; durationSec: number; }
 export interface Fitness {
   streak: number; weight: number; weightHistory: number[]; weightDates: string[];

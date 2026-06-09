@@ -158,6 +158,46 @@ export async function apiAddClimbPhoto(
   });
 }
 
+export async function apiUpdateExpense(id: string, x: {
+  amount: number; description: string; category_id: number; date: string;
+}): Promise<void> {
+  await apiFetch(`/api/expenses/${id}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
+export async function apiDeleteExpense(id: string): Promise<void> {
+  await apiFetch(`/api/expenses/${id}`, { method: 'DELETE' });
+}
+
+export async function apiUpdateWorkout(id: string, x: { name: string; duration?: number; date: string }): Promise<void> {
+  await apiFetch(`/api/fitness/workouts/${id}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
+export async function apiDeleteWorkout(id: string): Promise<void> {
+  await apiFetch(`/api/fitness/workouts/${id}`, { method: 'DELETE' });
+}
+
+export async function apiAddWorkoutSet(workoutId: string, x: {
+  exercise: string; sets?: number | null; reps?: number | null; weight?: number | null; duration?: number | null;
+}): Promise<{ id: number } | null> {
+  const res = await apiFetch<{ id?: number }>(`/api/fitness/workouts/${workoutId}/sets`, { method: 'POST', body: JSON.stringify(x) });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiUpdateWorkoutSet(setId: string, x: {
+  exercise: string; sets?: number | null; reps?: number | null; weight?: number | null; duration?: number | null;
+}): Promise<void> {
+  await apiFetch(`/api/fitness/sets/${setId}`, { method: 'PUT', body: JSON.stringify(x) });
+}
+
+export async function apiDeleteWorkoutSet(setId: string): Promise<void> {
+  await apiFetch(`/api/fitness/sets/${setId}`, { method: 'DELETE' });
+}
+
+export async function apiStravaImport(): Promise<{ imported: number }> {
+  const res = await apiFetch<{ imported?: number }>('/api/strava/import', { method: 'POST' });
+  return { imported: res.data.imported ?? 0 };
+}
+
 export async function apiAddJob(x: {
   company: string;
   role: string;

@@ -6,6 +6,7 @@ export function seed(): AppData {
     spending: {
       budget: 0,
       cats: [],
+      catIds: {},
       txns: [],
     },
     fitness: {
@@ -14,7 +15,7 @@ export function seed(): AppData {
       weightHistory: [],
       weightDates: [],
       weekSessions: [0, 0, 0, 0, 0, 0, 0],
-      workouts: [],
+      workouts: [] as import('../data/types').Workout[],
       runs: [],
       runWeekKm: [],
       runWeekLabels: [],

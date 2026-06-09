@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Pressable, Modal, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
@@ -29,8 +29,11 @@ export function ClimbingScreen({ onLogSend }: Props) {
   const theme = useTheme();
   const climbing = useStore(s => s.data.climbing);
   const syncFromServer = useStore(s => s.syncFromServer);
+  const section = useStore(s => s.section);
   const [tab, setTab] = useState(0);
   const stats = climbStats(climbing);
+
+  useEffect(() => { if (section !== 'climbing') { setTab(0); setEditClimb(null); } }, [section]);
 
   const [editClimb, setEditClimb] = useState<Send | null>(null);
   const [lightboxUri, setLightboxUri] = useState<string | null>(null);

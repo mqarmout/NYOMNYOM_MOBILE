@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
@@ -11,6 +11,8 @@ import { BlockBar } from '../components/crt/BlockBar';
 import { Bars } from '../components/crt/charts/Bars';
 import { Fab } from '../components/crt/Fab';
 import { fmtMoney, fmtTxnDate } from '../utils/format';
+import { EditExpenseSheet } from './sheets/EditExpenseSheet';
+import type { Expense } from '../data/types';
 
 const TABS = ['OVERVIEW', 'TRANSACTIONS', 'CATEGORIES'];
 
@@ -20,8 +22,12 @@ export function SpendingScreen({ onAddExpense }: Props) {
   const theme = useTheme();
   const data = useStore(s => s.data);
   const syncFromServer = useStore(s => s.syncFromServer);
+  const section = useStore(s => s.section);
   const [tab, setTab] = useState(0);
+  const [editExpense, setEditExpense] = useState<Expense | null>(null);
   const totals = spendTotals(data.spending);
+
+  useEffect(() => { if (section !== 'spending') setTab(0); }, [section]);
 
   return (
     <CRTScreen title="SPENDING">
@@ -73,7 +79,7 @@ export function SpendingScreen({ onAddExpense }: Props) {
         {tab === 1 && (
           <Box title={`TRANSACTIONS (${data.spending.txns.length})`}>
             {data.spending.txns.slice(0, 60).map(txn => (
-              <View key={txn.id} style={[styles.txnRow, { borderBottomColor: theme.border }]}>
+              <Pressable key={txn.id} onPress={() => setEditExpense(txn)} style={[styles.txnRow, { borderBottomColor: theme.border }]}>
                 <View style={styles.txnLeft}>
                   <Text style={[styles.txnMerchant, { color: theme.cream, fontFamily: FONTS.jetbrains }]}>{txn.merchant}</Text>
                   <Text style={[styles.txnMeta, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>
@@ -83,7 +89,7 @@ export function SpendingScreen({ onAddExpense }: Props) {
                 <Text style={[styles.txnAmt, { color: txn.over ? '#ff6a5a' : theme.accentDim, fontFamily: FONTS.jetbrains }]}>
                   {fmtMoney(txn.amt)}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </Box>
         )}
@@ -106,6 +112,7 @@ export function SpendingScreen({ onAddExpense }: Props) {
         )}
       </PullToRefresh>
       <Fab onPress={onAddExpense} />
+      <EditExpenseSheet open={editExpense !== null} onClose={() => setEditExpense(null)} expense={editExpense} />
     </CRTScreen>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
@@ -20,7 +20,9 @@ export function HydroScreen({ onLogDose }: Props) {
   const theme = useTheme();
   const hydro = useStore(s => s.data.hydro);
   const syncFromServer = useStore(s => s.syncFromServer);
+  const section = useStore(s => s.section);
   const [tab, setTab] = useState(0);
+  useEffect(() => { if (section !== 'hydro') setTab(0); }, [section]);
 
   return (
     <CRTScreen title="HYDRO">
