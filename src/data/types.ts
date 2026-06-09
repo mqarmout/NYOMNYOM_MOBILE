@@ -1,4 +1,4 @@
-export type SectionId = 'home' | 'spending' | 'jobs' | 'fitness' | 'portfolio' | 'climbing' | 'projects' | 'hydro';
+export type SectionId = 'home' | 'spending' | 'jobs' | 'fitness' | 'portfolio' | 'climbing' | 'projects' | 'hydro' | 'prints';
 
 export interface User {
   name: string;
@@ -79,10 +79,39 @@ export interface PortfolioItem {
 }
 export interface Portfolio { items: PortfolioItem[]; }
 
+export interface PrintJob {
+  id: number;
+  name: string;
+  print_time_min: number;
+  filament_used_g: number;
+  filament_cost_per_kg: number;
+  printer_wattage: number;
+  electricity_rate: number;
+  electricity_cost: number;
+  filament_cost: number;
+  total_cost: number;
+  material: string;
+  color: string | null;
+  status: 'success' | 'failed' | 'in_progress';
+  notes: string | null;
+  date: string;
+}
+export interface PrintStats {
+  total_prints: number;
+  successful_prints: number;
+  failed_prints: number;
+  success_rate: number;
+  total_filament_g: number;
+  total_cost: number;
+  total_print_time_min: number;
+  by_material: Record<string, number>;
+}
+export interface Prints { jobs: PrintJob[]; stats: PrintStats | null; }
+
 export interface AppData {
   user: User; spending: Spending; fitness: Fitness;
   climbing: Climbing; jobs: Jobs; hydro: Hydro;
-  projects: Projects; portfolio: Portfolio;
+  projects: Projects; portfolio: Portfolio; prints: Prints;
 }
 
 export interface Toast { id: number; text: string; kind: 'ok' | 'warn' | 'err'; }

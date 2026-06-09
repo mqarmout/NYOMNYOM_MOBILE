@@ -4,7 +4,7 @@ import Svg, { Defs, LinearGradient, Stop, Path, Circle } from 'react-native-svg'
 import { useTheme } from '../../../theme/ThemeProvider';
 import { FONTS } from '../../../theme/type';
 
-interface Props { values: number[]; height?: number; hot?: boolean; labels?: string[]; }
+interface Props { values: number[]; height?: number; hot?: boolean; labels?: string[]; allDots?: boolean; noFill?: boolean; }
 
 function smoothPath(pts: [number, number][]): string {
   if (pts.length < 2) return '';
@@ -23,7 +23,7 @@ function smoothPath(pts: [number, number][]): string {
   return d;
 }
 
-export function AreaSpark({ values, height = 80, hot = true, labels }: Props) {
+export function AreaSpark({ values, height = 80, hot = true, labels, allDots = false, noFill = false }: Props) {
   const theme = useTheme();
   const uid = useId().replace(/:/g, '');
   const id = `as${uid}`;
@@ -50,15 +50,29 @@ export function AreaSpark({ values, height = 80, hot = true, labels }: Props) {
     <View>
       <View style={{ height }}>
         <Svg viewBox={`0 0 360 ${height}`} width="100%" height={height} preserveAspectRatio="none">
-          <Defs>
-            <LinearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-              <Stop offset="0" stopColor={theme.accent} stopOpacity="0.28" />
-              <Stop offset="1" stopColor={theme.accent} stopOpacity="0" />
-            </LinearGradient>
-          </Defs>
-          <Path d={areaPath} fill={`url(#${id})`} stroke="none" />
+          {!noFill && (
+            <Defs>
+              <LinearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+                <Stop offset="0" stopColor={theme.accent} stopOpacity="0.28" />
+                <Stop offset="1" stopColor={theme.accent} stopOpacity="0" />
+              </LinearGradient>
+            </Defs>
+          )}
+          {!noFill && <Path d={areaPath} fill={`url(#${id})`} stroke="none" />}
           <Path d={linePath} fill="none" stroke={theme.accent} strokeWidth="1.6" strokeLinejoin="round" />
-          {hot && <Circle cx={last[0]} cy={last[1]} r="3.5" fill={theme.accentHot} />}
+          {allDots && pts.map(([cx, cy], i) => {
+            const isLast = i === pts.length - 1;
+            return (
+              <Circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={isLast ? 3.5 : 2.5}
+                fill={isLast && hot ? theme.accentHot : theme.accent}
+              />
+            );
+          })}
+          {!allDots && hot && <Circle cx={last[0]} cy={last[1]} r="3.5" fill={theme.accentHot} />}
         </Svg>
       </View>
       {showLabels && (

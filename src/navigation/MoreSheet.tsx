@@ -19,6 +19,7 @@ const MORE_ITEMS: MoreItem[] = [
   { id: 'jobs',      icon: 'briefcase', label: 'JOB TRACKER'   },
   { id: 'portfolio', icon: 'user',      label: 'PORTFOLIO'     },
   { id: 'projects',  icon: 'code',      label: 'DEV PROJECTS'  },
+  { id: 'prints',    icon: 'printer',   label: '3D PRINTS'     },
 ];
 
 const PALETTES: { name: PaletteName; label: string }[] = [

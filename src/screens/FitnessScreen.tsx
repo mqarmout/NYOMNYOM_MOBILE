@@ -8,6 +8,7 @@ import { CRTScreen } from '../components/crt/CRTScreen';
 import { Box, Comment, Mono } from '../components/crt/Box';
 import { SubTabs } from '../components/crt/SubTabs';
 import { Bars } from '../components/crt/charts/Bars';
+import { AreaSpark } from '../components/crt/charts/AreaSpark';
 import { Fab } from '../components/crt/Fab';
 import { EditWorkoutSheet } from './sheets/EditWorkoutSheet';
 import { EditSetSheet } from './sheets/EditSetSheet';
@@ -134,7 +135,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
         {tab === 1 && (
           <>
             <Box title="RUN VOLUME (KM/WEEK)">
-              <Bars values={fitness.runWeekKm} height={80} labels={fitness.runWeekLabels} />
+              <AreaSpark values={fitness.runWeekKm} height={80} labels={fitness.runWeekLabels} allDots noFill />
             </Box>
             <Box title={`RUNS (${fitness.runs.length})`}>
               {fitness.runs.slice(0, 30).map(run => (
@@ -178,7 +179,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                       {bodyStats.trend > 0 ? `▲ +${bodyStats.trend.toFixed(1)}kg since last entry` : `▼ ${bodyStats.trend.toFixed(1)}kg since last entry`}
                     </Mono>
                   )}
-                  <Bars values={fitness.weightHistory} height={80} labels={fitness.weightDates} />
+                  <AreaSpark values={fitness.weightHistory} height={80} labels={fitness.weightDates} allDots noFill />
                 </>
               ) : (
                 <Mono style={{ color: theme.muted }}>{'// no weight data — log a metric from the web'}</Mono>

@@ -4,9 +4,9 @@ import Svg, { Rect } from 'react-native-svg';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { FONTS } from '../../../theme/type';
 
-interface Props { values: number[]; height?: number; labels?: string[]; }
+interface Props { values: number[]; height?: number; labels?: string[]; showAllLabels?: boolean; }
 
-export function Bars({ values, height = 48, labels }: Props) {
+export function Bars({ values, height = 48, labels, showAllLabels = false }: Props) {
   const theme = useTheme();
 
   const bars = useMemo(() => {
@@ -24,7 +24,7 @@ export function Bars({ values, height = 48, labels }: Props) {
     }));
   }, [values, height]);
 
-  const showLabels = labels && labels.length > 0;
+  const hasLabels = labels && labels.length > 0;
 
   return (
     <View>
@@ -43,7 +43,21 @@ export function Bars({ values, height = 48, labels }: Props) {
           ))}
         </Svg>
       </View>
-      {showLabels && (
+      {hasLabels && showAllLabels && (
+        <View style={styles.allLabelRow}>
+          {labels!.map((l, i) => (
+            <View key={i} style={styles.allLabelCell}>
+              <Text
+                style={[styles.allLabel, { color: theme.muted, fontFamily: FONTS.jetbrains }]}
+                numberOfLines={1}
+              >
+                {l}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+      {hasLabels && !showAllLabels && (
         <View style={styles.labelRow}>
           {labels!.map((l, i) => {
             const n = labels!.length;
@@ -66,4 +80,7 @@ export function Bars({ values, height = 48, labels }: Props) {
 const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   label: { fontSize: 9, letterSpacing: 0.4 },
+  allLabelRow: { flexDirection: 'row', marginTop: 5 },
+  allLabelCell: { flex: 1, alignItems: 'center' },
+  allLabel: { fontSize: 8, letterSpacing: 0.2, textAlign: 'center' },
 });

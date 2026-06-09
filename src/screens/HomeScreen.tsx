@@ -81,7 +81,7 @@ export function HomeScreen() {
                 </View>
               </View>
               <BlockBar pct={totals.pct} />
-              <Bars values={data.spending.cats.map(c => c.spent)} height={56} labels={data.spending.cats.map(c => c.name)} />
+              <Bars values={data.spending.cats.map(c => c.spent)} height={56} labels={data.spending.cats.map(c => c.name)} showAllLabels />
             </Box>
 
             <Box title="FITNESS">

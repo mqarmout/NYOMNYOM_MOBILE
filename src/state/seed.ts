@@ -52,5 +52,9 @@ export function seed(): AppData {
     portfolio: {
       items: [],
     },
+    prints: {
+      jobs: [],
+      stats: null,
+    },
   };
 }

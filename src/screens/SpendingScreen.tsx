@@ -58,7 +58,7 @@ export function SpendingScreen({ onAddExpense }: Props) {
               <BlockBar pct={totals.pct} />
             </Box>
             <Box title="SPEND BY CATEGORY">
-              <Bars values={data.spending.cats.map(c => c.spent)} height={80} labels={data.spending.cats.map(c => c.name)} />
+              <Bars values={data.spending.cats.map(c => c.spent)} height={80} labels={data.spending.cats.map(c => c.name)} showAllLabels />
             </Box>
             <Box title="TOP CATEGORIES">
               {[...data.spending.cats].sort((a, b) => b.spent - a.spent).slice(0, 5).map(cat => (

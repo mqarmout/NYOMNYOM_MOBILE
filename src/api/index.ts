@@ -3,7 +3,7 @@ import { apiFetch, storeSessionCookie, clearSessionCookie, getStoredCookie } fro
 import { BASE_URL } from './config';
 import {
   mapUser, mapSpending, mapFitness, mapClimbing,
-  mapJobs, mapHydro, mapProjects, mapPortfolio,
+  mapJobs, mapHydro, mapProjects, mapPortfolio, mapPrints,
   type ServerAnalytics,
 } from './mappers';
 import type { AppData } from '../data/types';
@@ -42,6 +42,8 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
     devProjects, kanban,
     portfolio,
     about,
+    prints,
+    printStats,
   ] = await Promise.all([
     apiFetch<unknown[]>('/api/categories'),
     apiFetch<unknown[]>('/api/expenses'),
@@ -58,6 +60,8 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
     apiFetch<unknown[]>('/api/kanban'),
     apiFetch<unknown[]>('/api/portfolio/projects'),
     apiFetch<Record<string, string>>('/api/portfolio/about'),
+    apiFetch<unknown[]>('/api/prints'),
+    apiFetch<unknown>('/api/prints/stats'),
   ]);
 
   return {
@@ -84,6 +88,10 @@ export async function apiLoadAll(user: { username: string }): Promise<Partial<Ap
       (kanban.data as Parameters<typeof mapProjects>[1]) ?? [],
     ),
     portfolio: mapPortfolio((portfolio.data as Parameters<typeof mapPortfolio>[0]) ?? []),
+    prints: mapPrints(
+      (prints.data as Parameters<typeof mapPrints>[0]) ?? [],
+      (printStats.data as Parameters<typeof mapPrints>[1]) ?? null,
+    ),
   };
 }
 
@@ -233,6 +241,26 @@ export async function apiLogDose(x: {
   const res = await apiFetch<{ id?: number }>('/api/hydro/dosing', {
     method: 'POST',
     body: JSON.stringify(x),
+  });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
+export async function apiAddPrint(x: {
+  name: string;
+  print_time_min: number;
+  filament_used_g: number;
+  filament_cost_per_kg?: number;
+  printer_wattage?: number;
+  electricity_rate?: number;
+  material?: string;
+  color?: string;
+  status?: string;
+  notes?: string;
+}): Promise<{ id: number } | null> {
+  const body = { date: new Date().toISOString().slice(0, 10), ...x };
+  const res = await apiFetch<{ id?: number }>('/api/prints', {
+    method: 'POST',
+    body: JSON.stringify(body),
   });
   return res.ok && res.data.id ? { id: res.data.id } : null;
 }

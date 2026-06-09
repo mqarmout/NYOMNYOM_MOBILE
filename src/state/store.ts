@@ -12,10 +12,11 @@ import {
   apiAddWorkoutSet, apiUpdateWorkoutSet, apiDeleteWorkoutSet,
   apiAddClimb, apiAddClimbPhoto, apiUpdateClimb,
   apiAddJob, apiAddKanbanTask, apiLogDose, apiStravaImport,
+  apiAddPrint,
 } from '../api';
 
 export const PAGER: SectionId[] = [
-  'home', 'spending', 'fitness', 'climbing', 'hydro', 'jobs', 'portfolio', 'projects'
+  'home', 'spending', 'fitness', 'climbing', 'hydro', 'jobs', 'portfolio', 'projects', 'prints'
 ];
 
 interface AppState {
@@ -53,6 +54,7 @@ interface AppState {
   logDose(x: { tank: string; what: string; amt?: string }): void;
   addApplication(x: { co: string; role: string; comp: string }): void;
   addTask(x: { title: string; tag: string }): void;
+  addPrint(x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string }): Promise<void>;
   reset(): void;
 }
 
@@ -319,6 +321,12 @@ export const useStore = create<AppState>()(
         });
         get().pushToast('task added to todo', 'ok');
         apiAddKanbanTask({ title: title || 'new task', status: 'backlog', priority: 'medium' }).catch(() => {});
+      },
+
+      async addPrint(x) {
+        await apiAddPrint(x).catch(() => {});
+        await get().syncFromServer();
+        get().pushToast('print logged', 'ok');
       },
 
       reset() {

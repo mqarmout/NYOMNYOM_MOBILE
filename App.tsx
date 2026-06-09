@@ -18,6 +18,7 @@ import { PortfolioScreen } from './src/screens/PortfolioScreen';
 import { ClimbingScreen } from './src/screens/ClimbingScreen';
 import { ProjectsScreen } from './src/screens/ProjectsScreen';
 import { HydroScreen } from './src/screens/HydroScreen';
+import { PrintsScreen } from './src/screens/PrintsScreen';
 import { SectionPager } from './src/navigation/SectionPager';
 import { TabBar } from './src/navigation/TabBar';
 import { MoreSheet } from './src/navigation/MoreSheet';
@@ -57,6 +58,7 @@ function AppInner() {
   const [addJobOpen, setAddJobOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [logDoseOpen, setLogDoseOpen] = useState(false);
+  const [logPrintOpen, setLogPrintOpen] = useState(false);
 
   if (!hydrated || !fontsLoaded) {
     const p = PALETTES[palette];
@@ -82,6 +84,7 @@ function AppInner() {
             <JobsScreen onAddJob={() => setAddJobOpen(true)} />
             <PortfolioScreen />
             <ProjectsScreen onAddTask={() => setAddTaskOpen(true)} />
+            <PrintsScreen onLogPrint={() => setLogPrintOpen(true)} />
           </SectionPager>
 
           <TabBar onMorePress={() => setMoreOpen(true)} />

@@ -8,6 +8,7 @@ import type {
   Dose, Hydro, Tank,
   Task, TaskCol, TaskTag, Repo, Projects,
   PortfolioItem, Portfolio,
+  PrintJob, PrintStats, Prints,
 } from '../data/types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -406,4 +407,10 @@ export function mapPortfolio(serverProjects: ServerPortfolioProject[]): Portfoli
     desc: p.description ?? '',
   }));
   return { items };
+}
+
+// ── Prints ────────────────────────────────────────────────────────────────────
+
+export function mapPrints(serverJobs: PrintJob[], serverStats: PrintStats | null): Prints {
+  return { jobs: serverJobs, stats: serverStats };
 }
