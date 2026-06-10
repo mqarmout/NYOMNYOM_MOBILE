@@ -8,7 +8,7 @@ import type { FontName } from '../theme/type';
 import {
   apiLogin, apiMe, apiLogout, apiLoadAll,
   apiAddExpense, apiGetCategoryId, apiUpdateExpense, apiDeleteExpense,
-  apiUpdateIncome, apiDeleteIncome,
+  apiAddIncome, apiUpdateIncome, apiDeleteIncome,
   apiCreateProject, apiDeleteProject, apiAddPrintToProject,
   apiUpdatePrint, apiDeletePrint,
   apiCreateProfile, apiUpdateProfile, apiDeleteProfile,
@@ -45,6 +45,7 @@ interface AppState {
   clearToast(id: number): void;
 
   addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
+  addIncome(x: { description: string; amount: number; source: string; date: string }): void;
   updateExpense(x: { id: string; merchant: string; amt: number; cat: string; catId: number; date: string }): void;
   deleteExpense(id: string): void;
   updateIncome(x: { id: string; description: string; source: string; amt: number; date: string }): void;
@@ -164,6 +165,16 @@ export const useStore = create<AppState>()(
           if (!catId) return;
           return apiAddExpense({ description: merchant, amount: a, category_id: catId, date: today() });
         }).catch(() => {});
+      },
+
+      addIncome({ description, amount, source, date }) {
+        set(s => {
+          const d = structuredClone(s.data);
+          d.spending.income.unshift({ id: nanoid(), createdAt: nowIso(), description, source, amt: amount, date });
+          return { data: d };
+        });
+        get().pushToast('income +$' + amount.toFixed(2), 'ok');
+        apiAddIncome({ description, amount, source, date }).catch(() => {});
       },
 
       addWorkout({ name, min }) {

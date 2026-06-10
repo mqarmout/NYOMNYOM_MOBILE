@@ -264,6 +264,16 @@ export async function apiAddBodyWeight(x: {
   return res.ok && res.data.id ? { id: res.data.id } : null;
 }
 
+export async function apiAddIncome(x: {
+  description: string; amount: number; source: string; date: string;
+}): Promise<{ id: number } | null> {
+  const res = await apiFetch<{ id?: number }>('/api/income', {
+    method: 'POST',
+    body: JSON.stringify(x),
+  });
+  return res.ok && res.data.id ? { id: res.data.id } : null;
+}
+
 export async function apiUpdateIncome(id: string, x: {
   amount: number; description: string; source: string; date: string;
 }): Promise<void> {
