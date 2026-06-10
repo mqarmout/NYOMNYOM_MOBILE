@@ -13,7 +13,7 @@ export interface User {
 export interface Category { name: string; spent: number; budget: number; }
 export interface Expense {
   id: string; createdAt: string;
-  merchant: string; cat: string; catId: number; amt: number; over: boolean; date: string;
+  merchant: string; target?: string; cat: string; catId: number; amt: number; over: boolean; date: string;
 }
 export interface IncomeEntry {
   id: string; createdAt: string;

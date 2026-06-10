@@ -110,6 +110,7 @@ export async function apiAddExpense(x: {
   amount: number;
   category_id: number;
   date: string;
+  target?: string;
 }): Promise<{ id: number } | null> {
   const res = await apiFetch<{ id?: number }>('/api/expenses', {
     method: 'POST',

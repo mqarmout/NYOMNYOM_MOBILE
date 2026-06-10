@@ -43,7 +43,7 @@ interface ServerCategory {
 }
 
 interface ServerExpense {
-  id: number; amount: number; description: string;
+  id: number; amount: number; description: string; target?: string;
   category_id: number; category_name: string;
   date: string; created_at: string;
 }
@@ -93,6 +93,7 @@ export function mapSpending(
         id: sid(e.id),
         createdAt: e.created_at,
         merchant: e.description,
+        target: e.target ?? undefined,
         cat: e.category_name,
         catId: e.category_id,
         amt: Number(e.amount),

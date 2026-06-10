@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, ScrollView, Pressable,
-  Modal, FlatList, StyleSheet, RefreshControl,
+  Modal, KeyboardAvoidingView, FlatList, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
@@ -342,24 +342,28 @@ function ProjectDetailModal({ project, profiles, onClose }: {
 
         {/* Add print sheet */}
         <Modal visible={addOpen} transparent animationType="slide" onRequestClose={() => setAddOpen(false)}>
-          <Pressable style={s.scrim} onPress={() => setAddOpen(false)} />
-          <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
-            <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains, padding: 16, paddingBottom: 0 }]}>
-              // ADD PRINT TO {project.name.toUpperCase()}
-            </Text>
-            <PrintForm form={form} setForm={setForm} profiles={profiles} onSave={handleAdd} saveLabel="[+] LOG PRINT" />
-          </View>
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+            <Pressable style={s.scrim} onPress={() => setAddOpen(false)} />
+            <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
+              <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains, padding: 16, paddingBottom: 0 }]}>
+                // ADD PRINT TO {project.name.toUpperCase()}
+              </Text>
+              <PrintForm form={form} setForm={setForm} profiles={profiles} onSave={handleAdd} saveLabel="[+] LOG PRINT" />
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         {/* Edit print sheet */}
         <Modal visible={editPrint !== null} transparent animationType="slide" onRequestClose={() => setEditPrint(null)}>
-          <Pressable style={s.scrim} onPress={() => setEditPrint(null)} />
-          <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
-            <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains, padding: 16, paddingBottom: 0 }]}>
-              // EDIT PRINT
-            </Text>
-            <PrintForm form={form} setForm={setForm} profiles={profiles} onSave={handleUpdate} onDelete={handleDeletePrint} saveLabel="SAVE CHANGES" />
-          </View>
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+            <Pressable style={s.scrim} onPress={() => setEditPrint(null)} />
+            <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
+              <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains, padding: 16, paddingBottom: 0 }]}>
+                // EDIT PRINT
+              </Text>
+              <PrintForm form={form} setForm={setForm} profiles={profiles} onSave={handleUpdate} onDelete={handleDeletePrint} saveLabel="SAVE CHANGES" />
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     </Modal>
@@ -404,9 +408,10 @@ function ProfileModal({ profile, onClose }: {
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={s.scrim} onPress={onClose} />
-      <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <Pressable style={s.scrim} onPress={onClose} />
+        <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
           <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>
             {profile ? '// EDIT PROFILE' : '// NEW PROFILE'}
           </Text>
@@ -456,8 +461,9 @@ function ProfileModal({ profile, onClose }: {
               <Text style={[s.deleteBtnText, { color: STATUS.red, fontFamily: FONTS.jetbrains }]}>DELETE PROFILE</Text>
             </Pressable>
           )}
-        </ScrollView>
-      </View>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -657,18 +663,20 @@ export function PrintsScreen() {
 
       {/* New project modal */}
       <Modal visible={newProjectModal} transparent animationType="slide" onRequestClose={() => setNewProjectModal(false)}>
-        <Pressable style={s.scrim} onPress={() => setNewProjectModal(false)} />
-        <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent, padding: 20 }]}>
-          <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// NEW PROJECT</Text>
-          <FieldLabel label="PROJECT NAME" />
-          <Input value={newProjectName} onChange={setNewProjectName} placeholder="Enclosure, Functional parts..." />
-          <Pressable onPress={handleCreateProject}
-            style={[s.saveBtn, { backgroundColor: newProjectName.trim() ? theme.accent : theme.surface, borderColor: theme.accent, marginTop: 16 }]}>
-            <Text style={[s.saveBtnText, { color: newProjectName.trim() ? theme.bg : theme.muted, fontFamily: FONTS.jetbrains }]}>
-              [+] CREATE PROJECT
-            </Text>
-          </Pressable>
-        </View>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+          <Pressable style={s.scrim} onPress={() => setNewProjectModal(false)} />
+          <View style={[s.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent, padding: 20 }]}>
+            <Text style={[s.sheetTitle, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// NEW PROJECT</Text>
+            <FieldLabel label="PROJECT NAME" />
+            <Input value={newProjectName} onChange={setNewProjectName} placeholder="Enclosure, Functional parts..." />
+            <Pressable onPress={handleCreateProject}
+              style={[s.saveBtn, { backgroundColor: newProjectName.trim() ? theme.accent : theme.surface, borderColor: theme.accent, marginTop: 16 }]}>
+              <Text style={[s.saveBtnText, { color: newProjectName.trim() ? theme.bg : theme.muted, fontFamily: FONTS.jetbrains }]}>
+                [+] CREATE PROJECT
+              </Text>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Profile modal */}
@@ -720,7 +728,7 @@ const s = StyleSheet.create({
   addPrintBtnText: { fontSize: 11, letterSpacing: 1.2, fontWeight: '700' },
   // Sheets
   scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopWidth: 1, maxHeight: '88%' },
+  sheet: { marginTop: 'auto', borderTopWidth: 1, maxHeight: '88%' },
   sheetTitle: { fontSize: 10, letterSpacing: 1.4, marginBottom: 8 },
   // Form
   costPreview: { padding: 10, borderWidth: 1, marginBottom: 14, gap: 4 },

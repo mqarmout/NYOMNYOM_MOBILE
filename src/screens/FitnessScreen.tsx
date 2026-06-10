@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
 import { useStore } from '../state/store';
@@ -222,8 +222,9 @@ export function FitnessScreen({ onLogWorkout }: Props) {
 
       {/* Weight entry modal */}
       <Modal visible={weightModal} transparent animationType="slide" onRequestClose={() => setWeightModal(false)}>
-        <Pressable style={wStyles.scrim} onPress={() => setWeightModal(false)} />
-        <View style={[wStyles.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+          <Pressable style={wStyles.scrim} onPress={() => setWeightModal(false)} />
+          <View style={[wStyles.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
           <Text style={[wStyles.title, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// LOG WEIGHT</Text>
           <Text style={[wStyles.label, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>WEIGHT (kg)</Text>
           <TextInput
@@ -252,7 +253,8 @@ export function FitnessScreen({ onLogWorkout }: Props) {
               {savingWeight ? '...' : '[+] SAVE'}
             </Text>
           </Pressable>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <EditWorkoutSheet
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
 
 const wStyles = StyleSheet.create({
   scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopWidth: 1, padding: 24, paddingBottom: 48 },
+  sheet: { marginTop: 'auto', borderTopWidth: 1, padding: 24, paddingBottom: 48 },
   title: { fontSize: 10, letterSpacing: 1.4, marginBottom: 20 },
   label: { fontSize: 9, letterSpacing: 1.2, marginBottom: 6, marginTop: 14 },
   input: { borderWidth: 1, padding: 12, fontSize: 16 },

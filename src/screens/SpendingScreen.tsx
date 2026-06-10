@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, ScrollView, Modal, RefreshControl, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, ScrollView, Modal, KeyboardAvoidingView, RefreshControl, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { FONTS } from '../theme/type';
 import { useStore, spendTotals } from '../state/store';
@@ -263,8 +263,9 @@ export function SpendingScreen({ onAddExpense }: Props) {
 
       {/* Filter modal */}
       <Modal visible={filterModal} transparent animationType="slide" onRequestClose={() => setFilterModal(false)}>
-        <Pressable style={mStyles.scrim} onPress={() => setFilterModal(false)} />
-        <View style={[mStyles.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+          <Pressable style={mStyles.scrim} onPress={() => setFilterModal(false)} />
+          <View style={[mStyles.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
           <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
             <Text style={[mStyles.title, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// FILTER LEDGER</Text>
 
@@ -338,7 +339,8 @@ export function SpendingScreen({ onAddExpense }: Props) {
               </Pressable>
             </View>
           </ScrollView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </CRTScreen>
   );
@@ -371,7 +373,7 @@ const styles = StyleSheet.create({
 
 const mStyles = StyleSheet.create({
   scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopWidth: 1, maxHeight: '80%' },
+  sheet: { marginTop: 'auto', borderTopWidth: 1, maxHeight: '80%' },
   title: { fontSize: 10, letterSpacing: 1.4, marginBottom: 16 },
   label: { fontSize: 9, letterSpacing: 1.2, marginTop: 16, marginBottom: 8 },
   chipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },

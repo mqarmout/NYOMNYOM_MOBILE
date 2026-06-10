@@ -44,7 +44,7 @@ interface AppState {
   pushToast(text: string, kind?: Toast['kind']): void;
   clearToast(id: number): void;
 
-  addExpense(x: { merchant: string; amt: string | number; cat: string }): void;
+  addExpense(x: { merchant: string; target?: string; amt: string | number; cat: string }): void;
   addIncome(x: { description: string; amount: number; source: string; date: string }): void;
   updateExpense(x: { id: string; merchant: string; amt: number; cat: string; catId: number; date: string }): void;
   deleteExpense(id: string): void;
@@ -148,22 +148,20 @@ export const useStore = create<AppState>()(
         set(s => ({ toasts: s.toasts.filter(t => t.id !== id) }));
       },
 
-      addExpense({ merchant, amt, cat }) {
+      addExpense({ merchant, target, amt, cat }) {
         const a = Math.abs(parseFloat(String(amt)) || 0);
-        // Optimistic update
         set(s => {
           const d = structuredClone(s.data);
           const c = d.spending.cats.find(x => x.name === cat);
           const over = c ? c.spent + a > c.budget : false;
-          d.spending.txns.unshift({ id: nanoid(), createdAt: nowIso(), merchant: merchant || 'untitled', cat: cat || 'misc', catId: 0, amt: a, over, date: today() });
+          d.spending.txns.unshift({ id: nanoid(), createdAt: nowIso(), merchant: merchant || 'untitled', target, cat: cat || 'misc', catId: 0, amt: a, over, date: today() });
           if (c) c.spent = +(c.spent + a).toFixed(2);
           return { data: d };
         });
         get().pushToast('logged $' + a.toFixed(2) + ' · ' + (cat || 'misc'), 'ok');
-        // Background sync to server
         apiGetCategoryId(cat).then((catId: number | null) => {
           if (!catId) return;
-          return apiAddExpense({ description: merchant, amount: a, category_id: catId, date: today() });
+          return apiAddExpense({ description: merchant, target, amount: a, category_id: catId, date: today() });
         }).catch(() => {});
       },
 

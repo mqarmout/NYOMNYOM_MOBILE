@@ -27,7 +27,7 @@ export function Sheet({ open, onClose, title, subtitle = '> new entry_', childre
     >
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
       >
         <Pressable style={styles.scrim} onPress={onClose} />
         <View style={[styles.panel, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
