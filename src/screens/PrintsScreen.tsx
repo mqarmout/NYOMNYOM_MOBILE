@@ -314,7 +314,7 @@ function ProjectDetailModal({ project, profiles, onClose }: {
                   </View>
                   <Text style={[s.jobMeta, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>
                     {item.material} · {item.filament_used_g}g · {fmtTime(item.print_time_min)}
-                    {(item.quantity ?? 1) > 1 ? ` (×${item.quantity} = ${fmtTime(item.print_time_min * (item.quantity ?? 1))})` : ''}
+                    {(item.quantity ?? 1) > 1 ? ` (×${item.quantity} = ${item.filament_used_g * (item.quantity ?? 1)}g, ${fmtTime(item.print_time_min * (item.quantity ?? 1))})` : ''}
                   </Text>
                   <Text style={[s.jobMeta, { color: sc, fontFamily: FONTS.jetbrains }]}>
                     {item.status.replace('_', ' ')} · {fmtDay(item.date)}
