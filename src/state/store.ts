@@ -64,7 +64,7 @@ interface AppState {
   addPrint(x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string }): Promise<void>;
   createProject(name: string, notes?: string): Promise<void>;
   deleteProject(id: number): Promise<void>;
-  addPrintToProject(projectId: number, x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string }): Promise<void>;
+  addPrintToProject(projectId: number, x: { name: string; print_time_min: number; filament_used_g: number; filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number; material?: string; color?: string; status?: string; notes?: string; quantity?: number }): Promise<void>;
   updatePrint(id: number, x: object): Promise<void>;
   deletePrint(id: number): Promise<void>;
   createProfile(x: { name: string; material: string; filament_cost_per_kg: number; printer_wattage: number; electricity_rate: number }): Promise<void>;

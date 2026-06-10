@@ -290,6 +290,7 @@ export async function apiAddPrintToProject(projectId: number, x: {
   name: string; print_time_min: number; filament_used_g: number;
   filament_cost_per_kg?: number; printer_wattage?: number; electricity_rate?: number;
   material?: string; color?: string; status?: string; notes?: string; date?: string;
+  quantity?: number;
 }): Promise<{ id: number } | null> {
   const res = await apiFetch<{ id?: number }>(`/api/prints/projects/${projectId}/prints`, {
     method: 'POST',

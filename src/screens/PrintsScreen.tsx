@@ -23,12 +23,17 @@ function fmtTime(min: number): string {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-function calcCosts(ptm: string, fg: string, cpkg: string, pw: string, er: string) {
+function calcCosts(ptm: string, fg: string, cpkg: string, pw: string, er: string, qty: string) {
   const rate = parseFloat(er);
-  const base = isNaN(rate) ? 0 : rate;           // 1 kWh heatbed base
+  const q = Math.max(1, parseInt(qty) || 1);
+  const base = isNaN(rate) ? 0 : rate;
   const elec = base + (parseFloat(ptm) / 60) * (parseFloat(pw) / 1000) * rate;
   const fil = (parseFloat(fg) / 1000) * parseFloat(cpkg);
-  return { elec: isNaN(elec) ? 0 : elec, fil: isNaN(fil) ? 0 : fil };
+  return {
+    elec: isNaN(elec) ? 0 : elec * q,
+    fil: isNaN(fil) ? 0 : fil * q,
+    q,
+  };
 }
 
 // ── Shared field helpers ───────────────────────────────────────────────────
@@ -61,13 +66,13 @@ function Input({ value, onChange, placeholder, numeric }: {
 interface PrintFormState {
   name: string; timeMin: string; filG: string;
   costPerKg: string; wattage: string; elecRate: string;
-  material: string; notes: string;
+  material: string; notes: string; quantity: string;
 }
 
 const EMPTY_FORM: PrintFormState = {
   name: '', timeMin: '', filG: '',
   costPerKg: '25', wattage: '200', elecRate: '0.20',
-  material: 'PLA', notes: '',
+  material: 'PLA', notes: '', quantity: '1',
 };
 
 function PrintForm({
@@ -81,7 +86,7 @@ function PrintForm({
   saveLabel: string;
 }) {
   const theme = useTheme();
-  const { elec, fil } = calcCosts(form.timeMin, form.filG, form.costPerKg, form.wattage, form.elecRate);
+  const { elec, fil, q } = calcCosts(form.timeMin, form.filG, form.costPerKg, form.wattage, form.elecRate, form.quantity);
   const total = elec + fil;
   const canSave = form.name.trim().length > 0 && parseFloat(form.timeMin) > 0 && parseFloat(form.filG) >= 0;
 
@@ -99,7 +104,9 @@ function PrintForm({
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       {/* Cost preview */}
       <View style={[s.costPreview, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-        <Text style={[s.costLabel, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// COST PREVIEW (incl. 1kWh heatbed)</Text>
+        <Text style={[s.costLabel, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>
+          {`// COST PREVIEW × ${q} (incl. 1kWh heatbed each)`}
+        </Text>
         <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
           <Text style={[s.costItem, { color: theme.accentDim, fontFamily: FONTS.jetbrains }]}>elec ${elec.toFixed(3)}</Text>
           <Text style={[s.costItem, { color: theme.accentDim, fontFamily: FONTS.jetbrains }]}>fil ${fil.toFixed(3)}</Text>
@@ -169,6 +176,9 @@ function PrintForm({
         </View>
       </ScrollView>
 
+      <FieldLabel label="QUANTITY (copies)" />
+      <Input value={form.quantity} onChange={v => setForm(f => ({ ...f, quantity: v }))} placeholder="1" numeric />
+
       <FieldLabel label="NOTES (optional)" />
       <Input value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} placeholder="layer height, supports..." />
 
@@ -217,6 +227,7 @@ function ProjectDetailModal({ project, profiles, onClose }: {
       elecRate: String(job.electricity_rate),
       material: job.material,
       notes: job.notes ?? '',
+      quantity: String(job.quantity ?? 1),
     });
   };
 
@@ -229,6 +240,7 @@ function ProjectDetailModal({ project, profiles, onClose }: {
       printer_wattage: parseFloat(form.wattage) || 200,
       electricity_rate: parseFloat(form.elecRate) || 0.20,
       material: form.material,
+      quantity: Math.max(1, parseInt(form.quantity) || 1),
       notes: form.notes.trim() || undefined,
     });
     setAddOpen(false);
@@ -244,6 +256,7 @@ function ProjectDetailModal({ project, profiles, onClose }: {
       printer_wattage: parseFloat(form.wattage) || 200,
       electricity_rate: parseFloat(form.elecRate) || 0.20,
       material: form.material,
+      quantity: Math.max(1, parseInt(form.quantity) || 1),
       notes: form.notes.trim() || undefined,
     });
     setEditPrint(null);
@@ -291,16 +304,24 @@ function ProjectDetailModal({ project, profiles, onClose }: {
               <Pressable onPress={() => openEdit(item)}
                 style={[s.jobRow, { borderBottomColor: theme.border }]}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.jobName, { color: theme.cream, fontFamily: FONTS.jetbrains }]}>{item.name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={[s.jobName, { color: theme.cream, fontFamily: FONTS.jetbrains }]}>{item.name}</Text>
+                    {(item.quantity ?? 1) > 1 && (
+                      <Text style={[s.qtyBadge, { color: theme.accent, borderColor: theme.accent, fontFamily: FONTS.jetbrains }]}>
+                        ×{item.quantity}
+                      </Text>
+                    )}
+                  </View>
                   <Text style={[s.jobMeta, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>
                     {item.material} · {item.filament_used_g}g · {fmtTime(item.print_time_min)}
+                    {(item.quantity ?? 1) > 1 ? ` (×${item.quantity} = ${fmtTime(item.print_time_min * (item.quantity ?? 1))})` : ''}
                   </Text>
                   <Text style={[s.jobMeta, { color: sc, fontFamily: FONTS.jetbrains }]}>
                     {item.status.replace('_', ' ')} · {fmtDay(item.date)}
                   </Text>
                 </View>
                 <Text style={[s.jobCost, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>
-                  ${item.total_cost.toFixed(2)}
+                  ${(item.total_cost * (item.quantity ?? 1)).toFixed(2)}
                 </Text>
               </Pressable>
             );
@@ -686,6 +707,7 @@ const s = StyleSheet.create({
   jobName: { fontSize: 12, letterSpacing: 0.5 },
   jobMeta: { fontSize: 10, marginTop: 2, letterSpacing: 0.5 },
   jobCost: { fontSize: 13, letterSpacing: 0.5, paddingTop: 2 },
+  qtyBadge: { fontSize: 10, borderWidth: 1, paddingHorizontal: 5, paddingVertical: 1, letterSpacing: 0.5 },
   // Project detail modal
   fullModal: { flex: 1 },
   detailHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, gap: 12 },

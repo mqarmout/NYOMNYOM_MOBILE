@@ -99,6 +99,7 @@ export interface PrintJob {
   color: string | null;
   status: 'success' | 'failed' | 'in_progress';
   notes: string | null;
+  quantity: number;
   date: string;
 }
 export interface PrintProject {
