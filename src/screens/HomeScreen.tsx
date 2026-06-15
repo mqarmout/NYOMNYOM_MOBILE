@@ -96,7 +96,7 @@ export function HomeScreen() {
                 <View style={styles.statBlock}>
                   <Comment>{'// weight'}</Comment>
                   <Text style={[styles.bigNum, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>
-                    {`${fitness.weight}kg`}
+                    {`${fitness.weight}lbs`}
                   </Text>
                 </View>
                 <View style={styles.statBlock}>
@@ -167,7 +167,7 @@ export function HomeScreen() {
             {[
               { label: 'BALANCE', val: `${balance >= 0 ? '+' : ''}${fmtMoney(balance)}` },
               { label: 'STREAK', val: `${fitness.streak}d` },
-              { label: 'WEIGHT', val: `${fitness.weight}kg` },
+              { label: 'WEIGHT', val: `${fitness.weight}lbs` },
               { label: 'SENDS', val: `${stats.sent}` },
               { label: 'MAX GRADE', val: stats.max },
               { label: 'JOBS', val: `${jobCount}` },

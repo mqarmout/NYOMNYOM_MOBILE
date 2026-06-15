@@ -46,7 +46,7 @@ interface AppState {
 
   addExpense(x: { merchant: string; target?: string; amt: string | number; cat: string }): void;
   addIncome(x: { description: string; amount: number; source: string; date: string }): void;
-  updateExpense(x: { id: string; merchant: string; amt: number; cat: string; catId: number; date: string }): void;
+  updateExpense(x: { id: string; merchant: string; target?: string; amt: number; cat: string; catId: number; date: string }): void;
   deleteExpense(id: string): void;
   updateIncome(x: { id: string; description: string; source: string; amt: number; date: string }): void;
   deleteIncome(id: string): void;
@@ -185,15 +185,15 @@ export const useStore = create<AppState>()(
         apiAddWorkout({ name: name || 'Session', duration: parseInt(String(min ?? 45)) || 45, date: today() }).catch(() => {});
       },
 
-      updateExpense({ id, merchant, amt, cat, catId, date }) {
+      updateExpense({ id, merchant, target, amt, cat, catId, date }) {
         set(s => {
           const d = structuredClone(s.data);
           const idx = d.spending.txns.findIndex(t => t.id === id);
-          if (idx >= 0) d.spending.txns[idx] = { ...d.spending.txns[idx]!, merchant, amt, cat, catId, date };
+          if (idx >= 0) d.spending.txns[idx] = { ...d.spending.txns[idx]!, merchant, target, amt, cat, catId, date };
           return { data: d };
         });
         get().pushToast('expense updated', 'ok');
-        apiUpdateExpense(id, { amount: amt, description: merchant, category_id: catId, date }).catch(() => {});
+        apiUpdateExpense(id, { amount: amt, description: merchant, target, category_id: catId, date }).catch(() => {});
         setTimeout(() => get().syncFromServer(), 500);
       },
 
@@ -372,7 +372,7 @@ export const useStore = create<AppState>()(
       async addBodyWeight({ weight, date }) {
         await apiAddBodyWeight({ weight, date }).catch(() => {});
         await get().syncFromServer();
-        get().pushToast(`${weight}kg logged`, 'ok');
+        get().pushToast(`${weight}lbs logged`, 'ok');
       },
 
       async addPrint(x) {

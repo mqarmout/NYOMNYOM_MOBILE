@@ -176,7 +176,7 @@ export async function apiAddClimbPhoto(
 }
 
 export async function apiUpdateExpense(id: string, x: {
-  amount: number; description: string; category_id: number; date: string;
+  amount: number; description: string; target?: string; category_id: number; date: string;
 }): Promise<void> {
   await apiFetch(`/api/expenses/${id}`, { method: 'PUT', body: JSON.stringify(x) });
 }

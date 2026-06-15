@@ -131,7 +131,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                                 {[
                                   s.sets != null ? `${s.sets}×` : null,
                                   s.reps != null ? `${s.reps} reps` : null,
-                                  s.weight != null ? `${s.weight}kg` : null,
+                                  s.weight != null ? `${s.weight}lbs` : null,
                                   s.duration != null ? `${s.duration}s` : null,
                                 ].filter(Boolean).join(' · ')}
                               </Mono>
@@ -179,20 +179,20 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                   <View style={styles.row}>
                     <View style={styles.statBlock}>
                       <Comment>{'// current'}</Comment>
-                      <Text style={[styles.bigNum, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>{`${bodyStats.latest}kg`}</Text>
+                      <Text style={[styles.bigNum, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>{`${bodyStats.latest}lbs`}</Text>
                     </View>
                     <View style={styles.statBlock}>
                       <Comment>{'// min'}</Comment>
-                      <Text style={[styles.bigNum, { color: theme.accentDim, fontFamily: FONTS.jetbrains }]}>{`${bodyStats.min}kg`}</Text>
+                      <Text style={[styles.bigNum, { color: theme.accentDim, fontFamily: FONTS.jetbrains }]}>{`${bodyStats.min}lbs`}</Text>
                     </View>
                     <View style={styles.statBlock}>
                       <Comment>{'// max'}</Comment>
-                      <Text style={[styles.bigNum, { color: theme.accentDim, fontFamily: FONTS.jetbrains }]}>{`${bodyStats.max}kg`}</Text>
+                      <Text style={[styles.bigNum, { color: theme.accentDim, fontFamily: FONTS.jetbrains }]}>{`${bodyStats.max}lbs`}</Text>
                     </View>
                   </View>
                   {bodyStats.trend !== 0 && (
                     <Mono style={{ color: bodyStats.trend > 0 ? '#ffa83c' : '#3aff7a', marginBottom: 8 }}>
-                      {bodyStats.trend > 0 ? `▲ +${bodyStats.trend.toFixed(1)}kg since last entry` : `▼ ${bodyStats.trend.toFixed(1)}kg since last entry`}
+                      {bodyStats.trend > 0 ? `▲ +${bodyStats.trend.toFixed(1)}lbs since last entry` : `▼ ${bodyStats.trend.toFixed(1)}lbs since last entry`}
                     </Mono>
                   )}
                   <AreaSpark values={fitness.weightHistory} height={80} labels={fitness.weightDates} allDots noFill />
@@ -208,7 +208,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
                   <View key={i} style={[styles.metricRow, { borderBottomColor: theme.border }]}>
                     <Mono style={{ color: theme.muted }}>{d}</Mono>
                     <Text style={[styles.metricVal, { color: theme.accentHot, fontFamily: FONTS.jetbrains }]}>
-                      {`${fitness.weightHistory[i]}kg`}
+                      {`${fitness.weightHistory[i]}lbs`}
                     </Text>
                   </View>
                 )).reverse()}
@@ -226,7 +226,7 @@ export function FitnessScreen({ onLogWorkout }: Props) {
           <Pressable style={wStyles.scrim} onPress={() => setWeightModal(false)} />
           <View style={[wStyles.sheet, { backgroundColor: theme.bg, borderTopColor: theme.accent }]}>
           <Text style={[wStyles.title, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>// LOG WEIGHT</Text>
-          <Text style={[wStyles.label, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>WEIGHT (kg)</Text>
+          <Text style={[wStyles.label, { color: theme.muted, fontFamily: FONTS.jetbrains }]}>WEIGHT (lbs)</Text>
           <TextInput
             style={[wStyles.input, { color: theme.cream, borderColor: theme.border, fontFamily: FONTS.jetbrains }]}
             value={weightInput}

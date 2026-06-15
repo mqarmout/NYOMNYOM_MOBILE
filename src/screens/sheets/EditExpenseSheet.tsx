@@ -16,14 +16,16 @@ export function EditExpenseSheet({ open, onClose, expense }: Props) {
   const cats   = useStore(s => s.data.spending.cats);
   const catIds = useStore(s => s.data.spending.catIds);
 
-  const [merchant, setMerchant] = useState('');
-  const [amt, setAmt]           = useState('');
-  const [cat, setCat]           = useState('');
-  const [date, setDate]         = useState('');
+  const [description, setDescription] = useState('');
+  const [merchant, setMerchant]       = useState('');
+  const [amt, setAmt]                 = useState('');
+  const [cat, setCat]                 = useState('');
+  const [date, setDate]               = useState('');
 
   useEffect(() => {
     if (expense) {
-      setMerchant(expense.merchant);
+      setDescription(expense.merchant);
+      setMerchant(expense.target ?? '');
       setAmt(String(expense.amt));
       setCat(expense.cat);
       setDate(expense.date ?? expense.createdAt.slice(0, 10));
@@ -34,8 +36,8 @@ export function EditExpenseSheet({ open, onClose, expense }: Props) {
     if (!expense) return;
     const a = parseFloat(amt);
     const resolvedCatId = catIds[cat] ?? expense.catId;
-    if (!a || !merchant || !resolvedCatId) return;
-    updateExpense({ id: expense.id, merchant, amt: a, cat, catId: resolvedCatId, date });
+    if (!a || !description || !resolvedCatId) return;
+    updateExpense({ id: expense.id, merchant: description, target: merchant.trim() || undefined, amt: a, cat, catId: resolvedCatId, date });
     onClose();
   }
 
@@ -48,8 +50,11 @@ export function EditExpenseSheet({ open, onClose, expense }: Props) {
 
   return (
     <Sheet open={open} onClose={onClose} title="edit expense" subtitle="> update entry_">
+      <Field label="DESCRIPTION">
+        <SheetTextInput value={description} onChangeText={setDescription} placeholder="lunch, coffee, groceries..." />
+      </Field>
       <Field label="MERCHANT">
-        <SheetTextInput value={merchant} onChangeText={setMerchant} placeholder="coffee shop..." />
+        <SheetTextInput value={merchant} onChangeText={setMerchant} placeholder="Subway, Netflix, Amazon..." />
       </Field>
       <Field label="AMOUNT">
         <SheetTextInput value={amt} onChangeText={setAmt} placeholder="0.00" keyboardType="decimal-pad" />
