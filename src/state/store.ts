@@ -122,16 +122,20 @@ export const useStore = create<AppState>()(
         const { auth } = get();
         if (!auth) return;
         set({ syncing: true });
-        try {
-          const partial = await apiLoadAll({ username: auth.name });
-          set(s => ({
-            syncing: false,
-            data: { ...s.data, ...partial },
-          }));
-        } catch {
-          set({ syncing: false });
-          get().pushToast('sync failed — using cached data', 'warn');
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const partial = await apiLoadAll({ username: auth.name });
+            set(s => ({
+              syncing: false,
+              data: { ...s.data, ...partial },
+            }));
+            return;
+          } catch {
+            if (attempt === 0) await new Promise(r => setTimeout(r, 3000));
+          }
         }
+        set({ syncing: false });
+        get().pushToast('sync failed — using cached data', 'warn');
       },
 
       go(s) { if (PAGER.includes(s)) set({ section: s }); },
